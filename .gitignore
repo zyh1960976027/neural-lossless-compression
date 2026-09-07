@@ -1,0 +1,33 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Experiment data and outputs
+checkpoints/
+datasets/
+runs/
+logs/
+*.log
+*.pt
+*.pth
+*.ckpt
+
+# Native, CUDA, and build caches
+build/
+dist/
+*.egg-info/
+*.o
+*.so
+.torch_extensions/
+.nv/
+cuda_cache/
+
+# Virtual and Conda environments
+.env
+.venv/
+venv/
+env/
+.conda/
+.conda-envs/
+.conda-pkgs/

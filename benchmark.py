@@ -1,0 +1,1 @@
+"""Benchmark entry-point placeholder."""
