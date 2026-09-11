@@ -7,7 +7,7 @@ from pathlib import Path
 
 import torch
 
-from model import (
+from mamba3_byte_compress.model import (
     FORMAL_MAMBA3_CONFIG,
     VOCAB_SIZE,
     Mamba3ByteLM,

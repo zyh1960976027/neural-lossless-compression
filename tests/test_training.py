@@ -10,10 +10,10 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from config import FORMAL_TRAINING_CONFIG, make_training_config
-from metrics import autocast_context
-from model import FORMAL_MAMBA3_CONFIG, build_mamba3_byte_model
-from trainer import (
+from mamba3_byte_compress.config import FORMAL_TRAINING_CONFIG, make_training_config
+from mamba3_byte_compress.metrics import autocast_context
+from mamba3_byte_compress.model import FORMAL_MAMBA3_CONFIG, build_mamba3_byte_model
+from mamba3_byte_compress.trainer import (
     ByteTrainer,
     WarmupCosineScheduler,
     load_model_checkpoint,

@@ -4,6 +4,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.cache/
 
 # Experiment data and outputs
 checkpoints/

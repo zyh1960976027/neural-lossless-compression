@@ -6,9 +6,9 @@ from pathlib import Path
 
 import torch
 
-from config import FORMAL_TRAINING_CONFIG, make_training_config
-from model import build_mamba3_byte_model
-from trainer import ByteTrainer, seed_everything
+from mamba3_byte_compress.config import FORMAL_TRAINING_CONFIG, make_training_config
+from mamba3_byte_compress.model import build_mamba3_byte_model
+from mamba3_byte_compress.trainer import ByteTrainer, seed_everything
 
 
 def parse_args(argv=None):

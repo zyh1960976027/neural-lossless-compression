@@ -12,10 +12,10 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from config import MODEL_NAME, make_training_config
-from data import ByteEvaluationDataset, ByteTrainingDataset
-from metrics import autocast_context, evaluate_probability_model
-from model import FORMAL_MAMBA3_CONFIG, parameter_counts
+from .config import MODEL_NAME, make_training_config
+from .data import ByteEvaluationDataset, ByteTrainingDataset
+from .metrics import autocast_context, evaluate_probability_model
+from .model import FORMAL_MAMBA3_CONFIG, parameter_counts
 
 
 class WarmupCosineScheduler:
