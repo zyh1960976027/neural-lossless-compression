@@ -10,6 +10,10 @@ __pycache__/
 checkpoints/
 datasets/
 runs/
+/experiments/test/*
+!/experiments/test/.gitkeep
+/experiments/train/*
+!/experiments/train/.gitkeep
 logs/
 *.log
 *.pt

@@ -10,6 +10,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+import train
+from mamba3_byte_compress.experiments import TRAIN_EXPERIMENTS_ROOT
 from mamba3_byte_compress.config import FORMAL_TRAINING_CONFIG, make_training_config
 from mamba3_byte_compress.metrics import autocast_context
 from mamba3_byte_compress.model import FORMAL_MAMBA3_CONFIG, build_mamba3_byte_model
@@ -42,6 +44,13 @@ class TinyByteLM(torch.nn.Module):
 
 
 class TrainingTest(unittest.TestCase):
+    def test_cli_defaults_to_training_experiments_directory(self):
+        args = train.parse_args([
+            "--train-file", "train.bin", "--validation-file", "validation.bin",
+            "--train-starts", "starts.npy",
+        ])
+        self.assertEqual(Path(args.run_dir).parent, TRAIN_EXPERIMENTS_ROOT)
+
     def setUp(self):
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary_directory.name)

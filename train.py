@@ -6,7 +6,8 @@ from pathlib import Path
 
 import torch
 
-from mamba3_byte_compress.config import FORMAL_TRAINING_CONFIG, make_training_config
+from mamba3_byte_compress.config import MODEL_NAME, FORMAL_TRAINING_CONFIG, make_training_config
+from mamba3_byte_compress.experiments import TRAIN_EXPERIMENTS_ROOT
 from mamba3_byte_compress.model import build_mamba3_byte_model
 from mamba3_byte_compress.trainer import ByteTrainer, seed_everything
 
@@ -16,7 +17,8 @@ def parse_args(argv=None):
     parser.add_argument("--train-file", required=True)
     parser.add_argument("--validation-file", required=True)
     parser.add_argument("--train-starts", required=True)
-    parser.add_argument("--run-dir", required=True)
+    parser.add_argument("--run-dir", default=str(TRAIN_EXPERIMENTS_ROOT / MODEL_NAME),
+                        help="Training outputs; default: experiments/train/" + MODEL_NAME)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument(
         "--micro-batch-size",
