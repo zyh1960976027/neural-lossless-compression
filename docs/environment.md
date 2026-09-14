@@ -15,7 +15,7 @@ python evaluate.py \
 ```
 
 默认使用 `checkpoints/best.pt`、`cuda:0` 和序列长度 `2048`。
-结果自动保存到 `experiments/test/debug_<时间戳>/results.json` 和 `summary.csv`。
+结果自动保存到 `experiments/test/<时间戳>_debug/results.json` 和 `summary.csv`。
 完整参数及训练产物目录见 [评估说明](evaluation.md)。
 
 不再需要手动执行 `source scripts/activate.sh`。该脚本保留为兼容入口。

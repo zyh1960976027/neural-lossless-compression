@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 
-MODEL_NAME = "mamba3_siso_3m"
+MODEL_NAME = "mamba3_siso_4l"
 
 FORMAL_TRAINING_CONFIG = {
     "optimizer": "adam",

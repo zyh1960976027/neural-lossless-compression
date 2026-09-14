@@ -19,8 +19,7 @@ from mamba3_byte_compress.experiments import (
     validate_experiment_name,
 )
 from mamba3_byte_compress.metrics import evaluate_probability_model
-from mamba3_byte_compress.model import build_mamba3_byte_model
-from mamba3_byte_compress.trainer import load_model_checkpoint
+from mamba3_byte_compress.trainer import load_mamba3_checkpoint
 
 
 DEFAULT_SEQUENCE_LENGTH = 2048
@@ -48,7 +47,7 @@ def parse_args(argv=None):
                         help="Project weights; default: checkpoints/best.pt")
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--name", type=validate_experiment_name,
-                        help="Test name; default: checkpoint filename without extension. A timestamp is always appended.")
+                        help="Test name; default: checkpoint filename without extension. A timestamp is always prepended.")
     parser.add_argument("--batch-size", type=_positive_int, default=None,
                         help="Default: checkpoint validation batch size, or 16")
     parser.add_argument("--sequence-length", type=_positive_int, default=DEFAULT_SEQUENCE_LENGTH,
@@ -85,9 +84,8 @@ def evaluate_file(test_file, checkpoint=DEFAULT_CHECKPOINT, *, device="cuda:0", 
     if sequence_length is not None:
         sequence_length = _positive_int(sequence_length)
     device = _cuda_device(device)
-    model = build_mamba3_byte_model()
     try:
-        loaded = load_model_checkpoint(model, checkpoint_path)
+        model, loaded = load_mamba3_checkpoint(checkpoint_path)
     except (AttributeError, KeyError, TypeError) as error:
         raise ValueError("Invalid project checkpoint: expected model weights and metadata.") from error
     training_config = loaded.get("training_config", {})

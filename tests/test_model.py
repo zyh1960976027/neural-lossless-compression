@@ -8,6 +8,7 @@ from pathlib import Path
 import torch
 
 from mamba3_byte_compress.model import (
+    BASELINE_MAMBA3_CONFIG,
     FORMAL_MAMBA3_CONFIG,
     VOCAB_SIZE,
     Mamba3ByteLM,
@@ -80,6 +81,35 @@ def _load_frozen_legacy_models():
         sys.dont_write_bytecode = previous_dont_write_bytecode
 
 
+class DefaultMamba3ModelTest(unittest.TestCase):
+    def test_four_layer_structure_and_parameter_counts(self):
+        model = build_mamba3_byte_model()
+        self.assertEqual(len(model.blocks), 4)
+        self.assertEqual(model.embedding.embedding_dim, 352)
+        self.assertEqual(model.lm_head.in_features, 352)
+        self.assertEqual([block.mixer.layer_idx for block in model.blocks], list(range(4)))
+        self.assertEqual(torch.count_nonzero(model.lm_head.weight).item(), 0)
+        expected = {
+            "backbone_trainable_params": 6_550_072,
+            "total_trainable_params": 6_730_296,
+        }
+        self.assertEqual(parameter_counts(model), expected)
+        self.assertEqual(analytic_parameter_counts(FORMAL_MAMBA3_CONFIG), expected)
+
+    def test_only_depth_and_experiment_metadata_change(self):
+        changed = {key for key in BASELINE_MAMBA3_CONFIG
+                   if BASELINE_MAMBA3_CONFIG[key] != FORMAL_MAMBA3_CONFIG[key]}
+        self.assertEqual(changed, {
+            "n_layer", "name", "expected_backbone_params", "expected_total_trainable_params",
+        })
+        model = build_mamba3_byte_model(BASELINE_MAMBA3_CONFIG)
+        self.assertEqual(len(model.blocks), 2)
+        self.assertEqual(parameter_counts(model), {
+            "backbone_trainable_params": 3_275_212,
+            "total_trainable_params": 3_455_436,
+        })
+
+
 @unittest.skipUnless(LEGACY_ROOT.is_dir(), "frozen OmniZip baseline is unavailable")
 class Mamba3ByteModelTest(unittest.TestCase):
     @classmethod
@@ -90,7 +120,7 @@ class Mamba3ByteModelTest(unittest.TestCase):
 
     def test_formal_configuration_and_structure(self):
         self.assertEqual(VOCAB_SIZE, 256)
-        self.assertEqual(FORMAL_MAMBA3_CONFIG, self.model_config)
+        self.assertEqual(BASELINE_MAMBA3_CONFIG, self.model_config)
 
         model = build_mamba3_byte_model(self.model_config)
         self.assertEqual(len(model.blocks), 2)

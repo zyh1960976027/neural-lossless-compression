@@ -7,7 +7,11 @@ from pathlib import Path
 import torch
 
 from mamba3_byte_compress.config import MODEL_NAME, FORMAL_TRAINING_CONFIG, make_training_config
-from mamba3_byte_compress.experiments import TRAIN_EXPERIMENTS_ROOT
+from mamba3_byte_compress.experiments import (
+    TRAIN_EXPERIMENTS_ROOT,
+    create_experiment_directory,
+    validate_experiment_name,
+)
 from mamba3_byte_compress.model import build_mamba3_byte_model
 from mamba3_byte_compress.trainer import ByteTrainer, seed_everything
 
@@ -17,8 +21,17 @@ def parse_args(argv=None):
     parser.add_argument("--train-file", required=True)
     parser.add_argument("--validation-file", required=True)
     parser.add_argument("--train-starts", required=True)
-    parser.add_argument("--run-dir", default=str(TRAIN_EXPERIMENTS_ROOT / MODEL_NAME),
-                        help="Training outputs; default: experiments/train/" + MODEL_NAME)
+    parser.add_argument(
+        "--name",
+        type=validate_experiment_name,
+        default=MODEL_NAME,
+        help="Experiment name; default: " + MODEL_NAME,
+    )
+    parser.add_argument(
+        "--run-dir",
+        default=None,
+        help="Existing experiment directory to resume (required with --resume)",
+    )
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument(
         "--micro-batch-size",
@@ -44,11 +57,16 @@ def main(argv=None):
     seed_everything(int(training_config["seed"]))
     model = build_mamba3_byte_model()
 
-    run_dir = Path(args.run_dir).resolve()
-    if args.resume is None and run_dir.exists() and any(run_dir.iterdir()):
-        raise FileExistsError(
-            f"Run directory is not empty: {run_dir}. Use --resume or a new directory."
-        )
+    if args.resume is None:
+        if args.run_dir is not None:
+            raise ValueError("--run-dir is only valid with --resume.")
+        run_dir = create_experiment_directory(TRAIN_EXPERIMENTS_ROOT, args.name)
+    else:
+        if args.run_dir is None:
+            raise ValueError("--run-dir is required with --resume.")
+        run_dir = Path(args.run_dir).resolve()
+        if not run_dir.is_dir():
+            raise FileNotFoundError(f"Missing experiment directory: {run_dir}")
     trainer = ByteTrainer(
         model=model,
         train_file=args.train_file,

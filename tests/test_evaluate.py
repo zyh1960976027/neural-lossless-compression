@@ -19,8 +19,10 @@ import evaluate
 from mamba3_byte_compress.config import MODEL_NAME
 from mamba3_byte_compress.data import ByteEvaluationDataset
 from mamba3_byte_compress.metrics import evaluate_probability_model
-from mamba3_byte_compress.model import FORMAL_MAMBA3_CONFIG, build_mamba3_byte_model
-from mamba3_byte_compress.trainer import load_model_checkpoint
+from mamba3_byte_compress.model import (
+    BASELINE_MAMBA3_CONFIG, FORMAL_MAMBA3_CONFIG, build_mamba3_byte_model,
+)
+from mamba3_byte_compress.trainer import load_mamba3_checkpoint, load_model_checkpoint
 
 
 class UniformByteModel(torch.nn.Module):
@@ -55,9 +57,10 @@ class EvaluationTest(unittest.TestCase):
             "training_config": {"sequence_length": 4, "validation_batch_size": 2},
         }
         self.save_checkpoint()
-        builder = patch.object(evaluate, "build_mamba3_byte_model", UniformByteModel)
+        builder = patch("mamba3_byte_compress.trainer.build_mamba3_byte_model",
+                        side_effect=lambda config: UniformByteModel())
         device = patch.object(evaluate, "_cuda_device", return_value=torch.device("cpu"))
-        builder.start()
+        self.builder = builder.start()
         device.start()
         self.addCleanup(builder.stop)
         self.addCleanup(device.stop)
@@ -77,6 +80,16 @@ class EvaluationTest(unittest.TestCase):
         self.assertEqual(result["batch_size"], 2)
         self.assertEqual(result["global_update"], 123)
         self.assertTrue(result["context_reset_each_block"])
+
+    def test_evaluation_selects_both_supported_depths(self):
+        for config in (BASELINE_MAMBA3_CONFIG, FORMAL_MAMBA3_CONFIG):
+            with self.subTest(model=config["name"]):
+                self.payload.update(model_name=config["name"], model_config=dict(config))
+                self.save_checkpoint()
+                result = self.run_evaluation()
+                self.builder.assert_called_with(config)
+                self.assertEqual(result["model_name"], config["name"])
+                self.assertAlmostEqual(result["bpb"], 8.0, places=6)
 
     def test_best_and_latest_load_actual_weights(self):
         for kind in ("best", "latest"):
@@ -130,7 +143,7 @@ class EvaluationTest(unittest.TestCase):
             ])
         directory = Path(result["experiment_dir"])
         self.assertEqual(directory.parent, self.experiments)
-        self.assertRegex(directory.name, r"^debug_\d{8}_\d{6}_\d{6}$")
+        self.assertRegex(directory.name, r"^\d{8}_\d{6}_debug$")
         self.assertEqual(result["experiment_name"], directory.name)
         self.assertEqual(result["test_name"], "debug")
         self.assertEqual(json.loads(stdout.getvalue()), result)
@@ -168,7 +181,7 @@ class EvaluationTest(unittest.TestCase):
                 "--test-file", str(self.raw),
             ])
         self.assertEqual(result["test_name"], "best")
-        self.assertRegex(result["experiment_name"], r"^best_\d{8}_\d{6}_\d{6}$")
+        self.assertRegex(result["experiment_name"], r"^\d{8}_\d{6}_best$")
         directory = Path(result["experiment_dir"])
         self.assertEqual(set(path.name for path in directory.iterdir()),
                          {"results.json", "summary.csv"})
@@ -219,6 +232,7 @@ class EvaluationTest(unittest.TestCase):
     def test_mismatched_checkpoint_metadata_and_weights(self):
         for key, value, message in (
             ("model_name", "wrong", "model name"),
+            ("model_name", BASELINE_MAMBA3_CONFIG["name"], "model config"),
             ("model_config", {}, "model config"),
             ("model", {}, "Missing key"),
         ):
@@ -235,6 +249,30 @@ class EvaluationTest(unittest.TestCase):
         self.save_checkpoint()
         with self.assertRaisesRegex(FloatingPointError, "non-finite"):
             self.run_evaluation()
+
+
+class Mamba3CheckpointLoadingTest(unittest.TestCase):
+    def test_both_depths_load_exact_weights_and_reject_missing_layers(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "model.pt"
+            for config in (BASELINE_MAMBA3_CONFIG, FORMAL_MAMBA3_CONFIG):
+                with self.subTest(model=config["name"]):
+                    original = build_mamba3_byte_model(config)
+                    payload = {"model_name": config["name"], "model_config": dict(config),
+                               "model": original.state_dict()}
+                    torch.save(payload, path)
+                    loaded, metadata = load_mamba3_checkpoint(path)
+                    self.assertEqual(len(loaded.blocks), config["n_layer"])
+                    self.assertEqual(metadata["model_config"], config)
+                    for name, tensor in original.state_dict().items():
+                        self.assertTrue(torch.equal(tensor, loaded.state_dict()[name]), name)
+                    if config is BASELINE_MAMBA3_CONFIG:
+                        with self.assertRaisesRegex(ValueError, "model name"):
+                            load_model_checkpoint(build_mamba3_byte_model(), path)
+                    del payload["model"]["blocks.0.mixer.in_proj.weight"]
+                    torch.save(payload, path)
+                    with self.assertRaisesRegex(RuntimeError, "Missing key"):
+                        load_mamba3_checkpoint(path)
 
 
 class CudaDeviceTest(unittest.TestCase):
@@ -294,8 +332,12 @@ class RealCheckpointEvaluationTest(unittest.TestCase):
                 self.assertGreater(result["peak_gpu_memory_gb"], 0.0)
                 self.assertIn("Peak GPU memory (GB)", completed.stderr)
                 results.append(result)
-            model = build_mamba3_byte_model()
-            load_model_checkpoint(model, REAL_CHECKPOINT)
+            model = build_mamba3_byte_model(BASELINE_MAMBA3_CONFIG)
+            load_model_checkpoint(
+                model, REAL_CHECKPOINT,
+                expected_model_name=BASELINE_MAMBA3_CONFIG["name"],
+                expected_model_config=BASELINE_MAMBA3_CONFIG,
+            )
             model.cuda().eval()
             for result in results:
                 direct = evaluate_probability_model(

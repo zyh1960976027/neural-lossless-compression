@@ -1,14 +1,16 @@
-"""Frozen Mamba-3 SISO byte-language-model baseline."""
+"""Mamba-3 SISO byte models for the depth experiment and frozen baseline."""
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from mamba_ssm import Mamba3
 
+from .config import MODEL_NAME
+
 
 VOCAB_SIZE = 256
 
-FORMAL_MAMBA3_CONFIG = {
+BASELINE_MAMBA3_CONFIG = {
     "status": "ready",
     "family": "mamba3_siso",
     "label": "Mamba-3 SISO",
@@ -26,6 +28,19 @@ FORMAL_MAMBA3_CONFIG = {
     "expected_backbone_params": 3_275_212,
     "expected_total_trainable_params": 3_455_436,
     "name": "mamba3_siso_3m",
+}
+
+FORMAL_MAMBA3_CONFIG = {
+    **BASELINE_MAMBA3_CONFIG,
+    "n_layer": 4,
+    "expected_backbone_params": 6_550_072,
+    "expected_total_trainable_params": 6_730_296,
+    "name": MODEL_NAME,
+}
+
+SUPPORTED_MAMBA3_CONFIGS = {
+    config["name"]: config
+    for config in (BASELINE_MAMBA3_CONFIG, FORMAL_MAMBA3_CONFIG)
 }
 
 

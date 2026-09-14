@@ -19,6 +19,7 @@ from mamba3_byte_compress.trainer import (
     ByteTrainer,
     WarmupCosineScheduler,
     load_model_checkpoint,
+    load_mamba3_checkpoint,
     seed_everything,
 )
 
@@ -49,7 +50,9 @@ class TrainingTest(unittest.TestCase):
             "--train-file", "train.bin", "--validation-file", "validation.bin",
             "--train-starts", "starts.npy",
         ])
-        self.assertEqual(Path(args.run_dir).parent, TRAIN_EXPERIMENTS_ROOT)
+        self.assertIsNone(args.run_dir)
+        self.assertEqual(args.name, "mamba3_siso_4l")
+        self.assertEqual(TRAIN_EXPERIMENTS_ROOT.name, "train")
 
     def setUp(self):
         self.temporary_directory = tempfile.TemporaryDirectory()
@@ -193,12 +196,34 @@ class TrainingTest(unittest.TestCase):
             ).item()
 
         self.assertLess(final_loss, initial_loss)
-        self.assertEqual(summary["global_update"], 4)
-        self.assertEqual(summary["tokens_seen"], 64)
-        self.assertEqual(summary["best_update"], 4)
+        results = summary["final_results"]
+        self.assertEqual(results["global_update"], 4)
+        self.assertEqual(results["tokens_seen"], 64)
+        self.assertEqual(results["best_update"], 4)
         self.assertEqual(trainer.accumulation_steps, 2)
         self.assertTrue(trainer.latest_checkpoint_path.is_file())
         self.assertTrue(trainer.best_checkpoint_path.is_file())
+        self.assertTrue(trainer.experiment_data_path.is_file())
+        self.assertTrue(trainer.experiment_summary_path.is_file())
+        self.assertTrue(trainer.bpb_plot_path.is_file())
+        self.assertEqual(trainer.bpb_plot_path.read_bytes()[:8], b"\x89PNG\r\n\x1a\n")
+        data = json.loads(trainer.experiment_data_path.read_text(encoding="utf-8"))
+        saved_summary = json.loads(
+            trainer.experiment_summary_path.read_text(encoding="utf-8")
+        )
+        self.assertEqual(saved_summary, summary)
+        self.assertEqual(len(data["training_metrics"]), 1)
+        self.assertEqual(len(data["validation_metrics"]), 4)
+        self.assertEqual(
+            set(path.name for path in trainer.run_dir.iterdir()),
+            {
+                "checkpoints",
+                "experiment_data.json",
+                "experiment_summary.json",
+                "bpb_vs_steps.png",
+            },
+        )
+
         latest = torch.load(
             trainer.latest_checkpoint_path, map_location="cpu", weights_only=False
         )
@@ -260,6 +285,10 @@ class TrainingTest(unittest.TestCase):
 
         self.assertEqual(resumed.global_update, uninterrupted.global_update)
         self.assertEqual(resumed.tokens_seen, uninterrupted.tokens_seen)
+        self.assertEqual(
+            [record["global_update"] for record in resumed.validation_metrics],
+            [1, 2, 3, 4],
+        )
         for name, value in resumed.model.state_dict().items():
             self.assertTrue(torch.equal(value, expected_state[name]), name)
 
@@ -320,9 +349,18 @@ class TrainingTest(unittest.TestCase):
             ).item()
 
         self.assertLess(final_loss, initial_loss)
-        self.assertEqual(summary["global_update"], 1)
+        self.assertEqual(summary["final_results"]["global_update"], 1)
         self.assertTrue(trainer.latest_checkpoint_path.is_file())
         self.assertTrue(trainer.best_checkpoint_path.is_file())
+
+        restored, checkpoint = load_mamba3_checkpoint(trainer.best_checkpoint_path)
+        self.assertEqual(checkpoint["model_name"], "mamba3_siso_4l")
+        self.assertEqual(len(restored.blocks), 4)
+        restored.cuda().eval()
+        with torch.inference_mode(), autocast_context("cuda:0", enabled=True):
+            expected_logits = trainer.model(tokens)
+            restored_logits = restored(tokens)
+        self.assertTrue(torch.equal(restored_logits, expected_logits))
 
 
 if __name__ == "__main__":

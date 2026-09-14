@@ -21,10 +21,10 @@ def validate_experiment_name(value):
 def create_experiment_directory(root, name):
     """Reserve a timestamped directory without overwriting an earlier run."""
     name = validate_experiment_name(name)
-    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S_%f")
+    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S")
     root = Path(root).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    stem = f"{name}_{timestamp}"
+    stem = f"{timestamp}_{name}"
     suffix = 1
     while True:
         directory = root / (stem if suffix == 1 else f"{stem}_{suffix}")

@@ -15,7 +15,12 @@ from torch.utils.data import DataLoader
 from .config import MODEL_NAME, make_training_config
 from .data import ByteEvaluationDataset, ByteTrainingDataset
 from .metrics import autocast_context, evaluate_probability_model
-from .model import FORMAL_MAMBA3_CONFIG, parameter_counts
+from .model import (
+    FORMAL_MAMBA3_CONFIG,
+    SUPPORTED_MAMBA3_CONFIGS,
+    build_mamba3_byte_model,
+    parameter_counts,
+)
 
 
 class WarmupCosineScheduler:
@@ -116,6 +121,131 @@ def _atomic_json_dump(data, path):
     os.replace(temporary, path)
 
 
+def _plot_bpb_history(training_metrics, validation_metrics, path):
+    """Write a compact linear BPB curve for visual convergence checks."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    width, height = 1600, 960
+    left, top, right, bottom = 145, 100, 70, 135
+    plot_left, plot_top = left, top
+    plot_right, plot_bottom = width - right, height - bottom
+    image = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(image)
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", 20)
+        small_font = ImageFont.truetype("DejaVuSans.ttf", 17)
+        title_font = ImageFont.truetype("DejaVuSans.ttf", 28)
+    except OSError:
+        font = small_font = title_font = ImageFont.load_default()
+
+    training_points = [
+        (int(record["global_update"]), float(record["bpb_batch"]))
+        for record in training_metrics
+    ]
+    validation_points = [
+        (int(record["global_update"]), float(record["bpb"]))
+        for record in validation_metrics
+    ]
+    # Validation BPB is the convergence signal. Mixing the much larger early
+    # batch BPB into the same y-axis would visually flatten its late plateau.
+    plotted_points = validation_points if validation_points else training_points
+    series_name = "Validation BPB" if validation_points else "Training batch BPB"
+    if not plotted_points:
+        raise ValueError("Cannot plot an empty BPB history.")
+    x_min = min(step for step, _ in plotted_points)
+    x_max = max(step for step, _ in plotted_points)
+    y_min = min(bpb for _, bpb in plotted_points)
+    y_max = max(bpb for _, bpb in plotted_points)
+    if x_min == x_max:
+        x_min, x_max = 0, max(1, x_max)
+    if y_min == y_max:
+        padding = max(abs(y_min) * 0.05, 0.1)
+    else:
+        padding = (y_max - y_min) * 0.08
+    y_min -= padding
+    y_max += padding
+
+    def chart_point(point):
+        step, bpb = point
+        x = plot_left + (step - x_min) / (x_max - x_min) * (plot_right - plot_left)
+        y = plot_bottom - (bpb - y_min) / (y_max - y_min) * (plot_bottom - plot_top)
+        return round(x), round(y)
+
+    for tick in range(6):
+        fraction = tick / 5
+        x = round(plot_left + fraction * (plot_right - plot_left))
+        y = round(plot_bottom - fraction * (plot_bottom - plot_top))
+        draw.line((x, plot_top, x, plot_bottom), fill="#e3e7eb", width=1)
+        draw.line((plot_left, y, plot_right, y), fill="#e3e7eb", width=1)
+        step_label = f"{round(x_min + fraction * (x_max - x_min)):,}"
+        bpb_label = f"{y_min + fraction * (y_max - y_min):.4f}"
+        draw.text((x - 28, plot_bottom + 14), step_label, fill="#4a5560", font=small_font)
+        draw.text((plot_left - 80, y - 9), bpb_label, fill="#4a5560", font=small_font)
+
+    draw.line((plot_left, plot_top, plot_left, plot_bottom), fill="#202830", width=2)
+    draw.line((plot_left, plot_bottom, plot_right, plot_bottom), fill="#202830", width=2)
+
+    if not validation_points:
+        points = [chart_point(point) for point in plotted_points]
+        if len(points) > 1:
+            draw.line(points, fill="#8fb9df", width=3)
+        for x, y in points:
+            draw.ellipse((x - 3, y - 3, x + 3, y + 3), fill="#8fb9df")
+    if validation_points:
+        points = [chart_point(point) for point in validation_points]
+        if len(points) > 1:
+            draw.line(points, fill="#d1495b", width=5)
+        for x, y in points:
+            draw.ellipse((x - 7, y - 7, x + 7, y + 7), fill="#d1495b")
+        best_point = min(validation_points, key=lambda point: point[1])
+        best_x, best_y = chart_point(best_point)
+        draw.ellipse(
+            (best_x - 11, best_y - 11, best_x + 11, best_y + 11),
+            fill="#2a9d8f",
+            outline="white",
+            width=3,
+        )
+        recent_values = [bpb for _, bpb in validation_points[-5:]]
+        recent_change = recent_values[0] - recent_values[-1]
+        draw.text(
+            (plot_right - 310, plot_top + 12),
+            f"Recent BPB improvement: {recent_change:.6f}",
+            fill="#202830",
+            font=small_font,
+        )
+
+    draw.text(
+        (width // 2 - 145, 38),
+        "Validation BPB vs. Training Steps",
+        fill="#202830",
+        font=title_font,
+    )
+    draw.text((width // 2 - 55, height - 55), "Training step", fill="#202830", font=font)
+    draw.text((25, plot_top - 40), "Bits per byte (lower is better)", fill="#202830", font=font)
+    legend_y = height - 95
+    series_color = "#d1495b" if validation_points else "#8fb9df"
+    draw.line((plot_left, legend_y, plot_left + 35, legend_y), fill=series_color, width=5)
+    draw.text((plot_left + 45, legend_y - 10), series_name, fill="#202830", font=font)
+    if validation_points:
+        best_bpb = min(bpb for _, bpb in validation_points)
+        draw.ellipse(
+            (plot_left + 235, legend_y - 7, plot_left + 249, legend_y + 7),
+            fill="#2a9d8f",
+        )
+        draw.text(
+            (plot_left + 260, legend_y - 10),
+            f"Best validation BPB: {best_bpb:.6f}",
+            fill="#202830",
+            font=font,
+        )
+
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    image.save(temporary, format="PNG")
+    os.replace(temporary, path)
+
+
 def _sha256_file(path, chunk_size=8 * 1024 * 1024):
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
@@ -208,6 +338,22 @@ class ByteTrainer:
         self.best_bpb = math.inf
         self.best_update = None
         self.last_validation_update = None
+        self.experiment_data_path = self.run_dir / "experiment_data.json"
+        self.experiment_summary_path = self.run_dir / "experiment_summary.json"
+        self.bpb_plot_path = self.run_dir / "bpb_vs_steps.png"
+        self.training_metrics = []
+        self.validation_metrics = []
+        if self.experiment_data_path.is_file():
+            with self.experiment_data_path.open(encoding="utf-8") as handle:
+                saved_data = json.load(handle)
+            training_metrics = saved_data.get("training_metrics")
+            validation_metrics = saved_data.get("validation_metrics")
+            if not isinstance(training_metrics, list) or not isinstance(
+                validation_metrics, list
+            ):
+                raise ValueError("Invalid experiment_data.json metric history.")
+            self.training_metrics = training_metrics
+            self.validation_metrics = validation_metrics
 
     @property
     def latest_checkpoint_path(self):
@@ -273,6 +419,22 @@ class ByteTrainer:
             raise ValueError("Checkpoint training-window position is inconsistent.")
         self.best_bpb = float(checkpoint["best_bpb"])
         self.best_update = checkpoint["best_update"]
+        self.training_metrics = [
+            record
+            for record in self.training_metrics
+            if int(record["global_update"]) <= self.global_update
+        ]
+        self.validation_metrics = [
+            record
+            for record in self.validation_metrics
+            if int(record["global_update"]) <= self.global_update
+        ]
+        self.last_validation_update = (
+            int(self.validation_metrics[-1]["global_update"])
+            if self.validation_metrics
+            else None
+        )
+        self._write_experiment_data()
         restore_rng_state(checkpoint["rng_state"])
         return checkpoint
 
@@ -323,18 +485,27 @@ class ByteTrainer:
             }
         )
         self.last_validation_update = self.global_update
-        _atomic_json_dump(
-            metrics, self.run_dir / f"validation_update_{self.global_update:06d}.json"
-        )
+        self.validation_metrics.append(metrics)
+        self._write_experiment_data()
         if metrics["bpb"] < self.best_bpb:
             self.best_bpb = metrics["bpb"]
             self.best_update = self.global_update
             self.save_checkpoint("best", validation_metrics=metrics)
         return metrics
 
+    def _write_experiment_data(self):
+        _atomic_json_dump(
+            {
+                "schema_version": 1,
+                "training_metrics": self.training_metrics,
+                "validation_metrics": self.validation_metrics,
+            },
+            self.experiment_data_path,
+        )
+
     def _write_log(self, record):
-        with open(self.run_dir / "train.jsonl", "a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record, sort_keys=True) + "\n")
+        self.training_metrics.append(record)
+        self._write_experiment_data()
 
     def train(self):
         if self.global_update >= self.total_updates:
@@ -402,31 +573,49 @@ class ByteTrainer:
             metrics = self.validate()
             print(json.dumps(metrics, sort_keys=True), flush=True)
         self.save_checkpoint("latest")
-        summary = {
-            "model_name": self.model_name,
-            "peak_lr": float(self.config["peak_lr"]),
-            "micro_batch_size": self.micro_batch_size,
-            "accumulation_steps": self.accumulation_steps,
+        final_results = {
             "global_update": self.global_update,
             "tokens_seen": self.tokens_seen,
             "best_bpb": self.best_bpb,
             "best_update": self.best_update,
+            "final_validation": self.validation_metrics[-1],
             "best_checkpoint": str(self.best_checkpoint_path),
             "latest_checkpoint": str(self.latest_checkpoint_path),
         }
-        _atomic_json_dump(summary, self.run_dir / "training_summary.json")
+        summary = {
+            "schema_version": 1,
+            "experiment_name": self.run_dir.name,
+            "experiment_dir": str(self.run_dir),
+            "configuration": {
+                "model_name": self.model_name,
+                "model_config": self.model_config,
+                "training_config": self.config,
+                "train_file": str(self.train_file),
+                "validation_file": str(self.validation_file),
+                "train_starts_file": str(self.train_starts_file),
+                "data_fingerprint": self.data_fingerprint,
+                "device": str(self.device),
+                "num_workers": self.num_workers,
+                "micro_batch_size": self.micro_batch_size,
+                "accumulation_steps": self.accumulation_steps,
+                "parameter_counts": parameter_counts(self.model),
+            },
+            "final_results": final_results,
+        }
+        summary = json.loads(json.dumps(summary, allow_nan=False))
+        self._write_experiment_data()
+        _atomic_json_dump(summary, self.experiment_summary_path)
+        _plot_bpb_history(
+            self.training_metrics, self.validation_metrics, self.bpb_plot_path
+        )
         return summary
 
 
-def load_model_checkpoint(
-    model,
-    checkpoint_path,
-    *,
-    expected_model_name=MODEL_NAME,
-    expected_model_config=None,
-    require_best=False,
+def _validate_checkpoint_metadata(
+    checkpoint, expected_model_name, expected_model_config, require_best=False,
 ):
-    checkpoint = _torch_load(checkpoint_path, map_location="cpu")
+    if not isinstance(checkpoint, dict):
+        raise ValueError("Invalid project checkpoint: expected a dictionary.")
     if checkpoint.get("model_name") != expected_model_name:
         raise ValueError("Checkpoint model name does not match the requested model.")
     expected_model_config = dict(
@@ -440,5 +629,34 @@ def load_model_checkpoint(
         raise ValueError("A best-validation checkpoint is required.")
     if require_best and checkpoint.get("phase") != "formal":
         raise ValueError("A formal-training checkpoint is required.")
+
+
+def load_model_checkpoint(
+    model,
+    checkpoint_path,
+    *,
+    expected_model_name=MODEL_NAME,
+    expected_model_config=None,
+    require_best=False,
+):
+    checkpoint = _torch_load(checkpoint_path, map_location="cpu")
+    _validate_checkpoint_metadata(
+        checkpoint, expected_model_name, expected_model_config, require_best,
+    )
     model.load_state_dict(checkpoint["model"], strict=True)
     return checkpoint
+
+
+def load_mamba3_checkpoint(checkpoint_path):
+    """Build either supported depth from checkpoint metadata and load strictly."""
+    checkpoint = _torch_load(checkpoint_path, map_location="cpu")
+    if not isinstance(checkpoint, dict):
+        raise ValueError("Invalid project checkpoint: expected a dictionary.")
+    model_name = checkpoint.get("model_name")
+    if not isinstance(model_name, str) or model_name not in SUPPORTED_MAMBA3_CONFIGS:
+        raise ValueError("Checkpoint model name is not a supported Mamba-3 model.")
+    model_config = SUPPORTED_MAMBA3_CONFIGS[model_name]
+    _validate_checkpoint_metadata(checkpoint, model_name, model_config)
+    model = build_mamba3_byte_model(model_config)
+    model.load_state_dict(checkpoint["model"], strict=True)
+    return model, checkpoint

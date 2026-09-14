@@ -18,7 +18,7 @@ checkpoints/
 └── best.pt
 experiments/
 ├── test/
-│   └── debug_20260911_160000_123456/
+│   └── 20260911_160000_debug/
 │       ├── results.json           # 全部指标、配置和实验目录
 │       └── summary.csv            # BPB、推理速度、峰值显存
 └── train/                         # 训练输出
@@ -35,33 +35,65 @@ CSV 可以用 Excel 或其他表格软件打开。终端也会显示结果保存
 | `--batch-size` | 权重中的验证批大小，缺省为 `16` |
 | `--name` | 权重文件名去掉最后一个扩展名，例如 `best.pt` 对应 `best` |
 
-默认名称和自定义名称都会追加运行开始时的本地时间戳，格式为
-`YYYYMMDD_HHMMSS_ffffff`（最后六位是微秒）。例如不指定名称时生成
-`best_20260911_160000_123456/`，指定 `--name debug` 时生成
-`debug_20260911_160000_123456/`。名称支持中文，但必须是一个目录名，不能含路径分隔符。
+默认名称和自定义名称前都会添加运行开始时的本地时间戳，格式为
+`YYYYMMDD_HHMMSS`。例如不指定名称时生成 `20260911_160000_best/`，指定
+`--name debug` 时生成 `20260911_160000_debug/`。名称支持中文，但必须是一个
+目录名，不能含路径分隔符。
 重名目录不会被覆盖。输出根目录固定相对于项目位置，不受终端当前目录影响。
 
 原来的 `--output` 参数已移除，请使用自动生成的实验目录。JSON 新增 `test_name`、
 `experiment_name` 和 `experiment_dir`，用于定位本次运行的结果。
-旧 `runs/baseline_001/debug_evaluation.json` 已迁入 `experiments/test/legacy_debug_*/`；
+旧 `runs/baseline_001/debug_evaluation.json` 已迁入
+`experiments/test/<时间戳>_legacy_debug/`；
 其原始 JSON 内容保留为历史记录，并补充 CSV 表格。
 
 ## 训练产物
 
-训练默认保存到 `experiments/train/mamba3_siso_3m/`，也可以显式为新实验指定目录：
+默认训练模型为 `mamba3_siso_4l`：4 层、`d_model=352`，骨干参数量
+6,550,072，总参数量 6,730,296。相对 2 层基线，仅增加层数；训练数据、优化器、
+学习率、batch、训练步数及评估计算方式保持不变。
+
+每次训练默认保存到独立的
+`experiments/train/<时间戳>_mamba3_siso_4l/`。可用 `--name` 指定实验名称；
+下面的训练和验证路径需要
+替换为基线实验使用的真实文件，并复用相同的训练窗口文件：
 
 ```bash
 python train.py \
   --train-file datasets/raw/train.bin \
   --validation-file datasets/raw/validation.bin \
-  --train-starts datasets/processed/train_windows.npy \
-  --run-dir experiments/train/baseline_002
+  --train-starts datasets/processed/train_windows.npy
 ```
 
-训练日志、验证结果和训练摘要保存在该运行目录，训练权重保存在其 `checkpoints/`
-子目录。恢复训练时使用相同的 `--run-dir` 并添加 `--resume`。
+运行目录只保留一个全过程数据表 `experiment_data.json`（训练与验证指标）、一个
+配置及最终结果表 `experiment_summary.json` 和一张收敛趋势图
+`bpb_vs_steps.png`；训练权重保存在 `checkpoints/` 子目录。趋势图显示验证 BPB、
+最佳点，以及最近五次验证的 BPB 改善量，避免训练 batch 的早期高值压缩纵轴，
+便于观察后期瓶颈。
+
+4 层实验从头初始化。恢复同一实验时，用 `--run-dir` 指向该实验目录并添加
+`--resume`；恢复指定权重可写为 `--resume /path/to/checkpoint.pt`。不支持用 2 层
+权重续训 4 层模型。
 根目录 `checkpoints/best.pt` 是现有的默认评估权重，不会自动被新训练覆盖；
 评估新训练的模型时通过 `--checkpoint experiments/train/<实验名>/checkpoints/best.pt` 指定。
+
+评估会根据权重中的模型名称和配置，严格加载 2 层基线 `mamba3_siso_3m`
+或 4 层模型 `mamba3_siso_4l`。例如在同一测试文件上比较两者：
+
+```bash
+python evaluate.py \
+  --test-file /path/to/same_test.bin \
+  --checkpoint checkpoints/best.pt \
+  --batch-size 32 --sequence-length 2048 --name baseline_2l
+
+python evaluate.py \
+  --test-file /path/to/same_test.bin \
+  --checkpoint experiments/train/<时间戳>_mamba3_siso_4l/checkpoints/best.pt \
+  --batch-size 32 --sequence-length 2048 --name capacity_4l
+```
+
+对比时显式使用相同的评估 batch 和序列长度；上例的 batch 32 与已有完整
+enwik9 评估记录一致。BPB、推理计时、显存统计和结果格式沿用原有实现。
 
 ## 指标口径
 
