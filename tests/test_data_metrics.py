@@ -161,6 +161,7 @@ class ByteDataAndMetricsTest(unittest.TestCase):
              patch.object(torch.cuda, "synchronize", side_effect=lambda dev: events.append("sync")) as sync, \
              patch.object(torch.cuda, "reset_peak_memory_stats") as reset, \
              patch.object(torch.cuda, "max_memory_allocated", return_value=2_500_000_000) as peak, \
+             patch.object(torch.cuda, "max_memory_reserved", return_value=3_000_000_000) as reserved, \
              patch.object(metrics.time, "perf_counter", side_effect=clock):
             result = evaluate_probability_model(
                 CheckedModel(), DataLoader(dataset, batch_size=1), device,
@@ -173,6 +174,8 @@ class ByteDataAndMetricsTest(unittest.TestCase):
         reset.assert_called_once_with(device)
         peak.assert_called_once_with(device)
         self.assertEqual(result["peak_gpu_memory_gb"], 2.5)
+        reserved.assert_called_once_with(device)
+        self.assertEqual(result["peak_gpu_reserved_memory_gb"], 3.0)
 
     def test_default_evaluation_does_not_profile_or_reset_cuda_peak(self):
         dataset = ByteEvaluationDataset(self._raw_file([0, 1]), 2)

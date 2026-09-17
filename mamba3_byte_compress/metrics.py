@@ -111,5 +111,9 @@ def evaluate_probability_model(model, dataloader, device, use_bf16=True, *,
                 torch.cuda.max_memory_allocated(device) / 1_000_000_000.0
                 if profile_cuda else None
             ),
+            "peak_gpu_reserved_memory_gb": (
+                torch.cuda.max_memory_reserved(device) / 1_000_000_000.0
+                if profile_cuda else None
+            ),
         })
     return result

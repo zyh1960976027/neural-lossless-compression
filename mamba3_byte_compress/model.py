@@ -176,6 +176,76 @@ def parameter_counts(model):
     }
 
 
+def autoregressive_macs(model_config, *, block_size=2048, predicted_bytes=None,
+                        vocab_size=VOCAB_SIZE):
+    """Return analytic inference MACs for the SISO recurrent codec path.
+
+    One MAC is one multiply-accumulate. The count includes all learned dense
+    projections and the mathematical SISO state recurrence: one state decay,
+    two rank-one state injections and one state readout per layer and predicted byte. Other
+    elementwise normalization, activation, rotation, exponentiation and softmax operations
+    are deliberately excluded.
+    """
+    if model_config.get("family") != "mamba3_siso":
+        raise ValueError("Only the Mamba-3 SISO model family is supported.")
+    if bool(model_config.get("is_mimo")) or int(model_config.get("n_groups", 1)) != 1:
+        raise ValueError("The analytic codec MAC count requires rank-one SISO state updates.")
+    block_size = int(block_size)
+    if block_size <= 0:
+        raise ValueError("block_size must be positive.")
+    if predicted_bytes is not None:
+        predicted_bytes = int(predicted_bytes)
+        if predicted_bytes < 0:
+            raise ValueError("predicted_bytes must be nonnegative.")
+
+    d_model = int(model_config["d_model"])
+    n_layer = int(model_config["n_layer"])
+    d_inner = int(model_config["expand"]) * d_model
+    d_state = int(model_config["d_state"])
+    head_dim = int(model_config["head_dim"])
+    if d_inner % head_dim:
+        raise ValueError("Mamba-3 d_inner must be divisible by head_dim.")
+    n_heads = d_inner // head_dim
+    rope_width = int(d_state * float(model_config["rope_fraction"]))
+    rope_width -= rope_width % 2
+    rope_angles = rope_width // 2
+    d_in_proj = 2 * d_inner + 2 * d_state + 3 * n_heads + rope_angles
+
+    dense_per_layer = (
+        d_model * d_in_proj
+        + d_inner * d_model
+        + 3 * d_model * int(model_config["ffn_hidden"])
+    )
+    dense_per_prediction = n_layer * dense_per_layer + d_model * int(vocab_size)
+    state_per_layer = 4 * n_heads * head_dim * d_state
+    state_per_prediction = n_layer * state_per_layer
+    total_per_prediction = dense_per_prediction + state_per_prediction
+    predictions_per_full_block = max(0, block_size - 1)
+    result = {
+        "method": "analytic_siso_recurrent_v1",
+        "mac_definition": "one multiply-accumulate",
+        "excluded_operations": [
+            "embedding lookup", "normalization", "activation", "rotation",
+            "exponentiation", "softmax", "probability quantization", "range coding",
+        ],
+        "dense_macs_per_predicted_byte": dense_per_prediction,
+        "state_macs_per_predicted_byte": state_per_prediction,
+        "macs_per_predicted_byte": total_per_prediction,
+        "predictions_per_full_block": predictions_per_full_block,
+        "macs_per_full_block": total_per_prediction * predictions_per_full_block,
+        "gmacs_per_full_block": (
+            total_per_prediction * predictions_per_full_block / 1_000_000_000.0
+        ),
+    }
+    if predicted_bytes is not None:
+        result.update(
+            predicted_bytes=predicted_bytes,
+            total_macs=total_per_prediction * predicted_bytes,
+            total_pmacs=total_per_prediction * predicted_bytes / 1_000_000_000_000_000.0,
+        )
+    return result
+
+
 def build_mamba3_byte_model(
     model_config=None,
     vocab_size=VOCAB_SIZE,

@@ -192,7 +192,8 @@ class CodecTest(unittest.TestCase):
              contextlib.redirect_stdout(io.StringIO()) as stdout, \
              contextlib.redirect_stderr(io.StringIO()):
             result = cli.main(["roundtrip", "--input", str(self.raw), "--compressed", str(self.packed),
-                               "--decoded", str(self.decoded), "--results", str(report)])
+                               "--decoded", str(self.decoded), "--results", str(report),
+                               "--inference", "prefix"])
         self.assertEqual(json.loads(stdout.getvalue()), result)
         self.assertEqual(json.loads(report.read_text()), result)
         self.assertTrue(result["files_identical"])

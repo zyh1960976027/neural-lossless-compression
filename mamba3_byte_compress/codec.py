@@ -1,8 +1,7 @@
 """A correctness-first, autoregressive Constriction range codec.
 
-Blocks follow ByteEvaluationDataset: one uniform file byte, then groups of
-2048 targets, each seeded by the preceding byte with no other carried context.
-Both ends recompute the same zero-padded prefix through the existing model.
+The batched path batches independent 2048-byte blocks with uniform first
+bytes. Legacy step and padded-prefix profiles retain their original semantics.
 """
 
 from contextlib import contextmanager
@@ -31,12 +30,38 @@ FRAME = struct.Struct("<II")  # payload byte length, CRC32
 MAX_HEADER_BYTES = 65536
 MAX_FRAME_BYTES = 65536
 PROFILE = "padded-prefix-2048-bf16-fp32-master-cpu-f64-softmax-v1"
+STEP_PROFILE = "recurrent-step-2048-zero-state-bf16-fp32-master-kv-bf16-cpu-f64-softmax-v1"
+BATCHED_PROFILE = "batched-step-independent-2048-uniform-seed-bf16-fp32-master-kv-bf16-cpu-f64-v1"
+BATCHED_V4_PROFILE = "batched-step-group-stream-2048-uniform-seed-bf16-fp32-master-kv-bf16-gpu-softmax-f32-v1"
 MAGIC_V2 = b"M3RC\x02\r\n\x1a"
 COMPACT_HEADER = struct.Struct("<8sBBQ32s16s")
 CRC32 = struct.Struct("<I")
 COMPACT_TRAILER = struct.Struct("<I32s")
 PROFILE_ID = 1  # PROFILE above, including 2048 targets and the existing CDF.
-FILE_FORMATS = ("v1", "v2-framed", "v2")
+STEP_PROFILE_ID = 2
+BATCHED_PROFILE_ID = 3
+BATCHED_V4_PROFILE_ID = 4
+BATCHED_V5_PROFILE_ID = 5
+BATCHED_V5_PROFILE = "batched-step-group-stream-2048-buffered-cudagraph-bf16-gpu-f32-v1"
+DEFAULT_BATCH_SIZE = 128
+MAX_BATCH_SIZE = 2**32 - 1  # The v3 header stores an unsigned 32-bit value.
+PROFILES = {PROFILE_ID: PROFILE, STEP_PROFILE_ID: STEP_PROFILE,
+            BATCHED_PROFILE_ID: BATCHED_PROFILE, BATCHED_V4_PROFILE_ID: BATCHED_V4_PROFILE, BATCHED_V5_PROFILE_ID: BATCHED_V5_PROFILE}
+PROFILE_IDS = {profile: number for number, profile in PROFILES.items()}
+INFERENCE_PROFILES = {"prefix": PROFILE, "step": STEP_PROFILE,
+                      "batched-step": BATCHED_PROFILE,
+                      "batched-step-v4": BATCHED_V4_PROFILE, "batched-step-v5": BATCHED_V5_PROFILE}
+FILE_FORMATS = ("v1", "v2-framed", "v2", "v3", "v4", "v5")
+MAGIC_V5 = b"M3RC\x05\r\n\x1a"
+MAGIC_V3 = b"M3RC\x03\r\n\x1a"
+MAGIC_V4 = b"M3RC\x04\r\n\x1a"
+BATCHED_HEADER = struct.Struct("<8sBBQI32s16s")
+
+
+def validate_batch_size(batch_size):
+    if type(batch_size) is not int or not 1 <= batch_size <= MAX_BATCH_SIZE:
+        raise ValueError(f"batch_size must be an integer in 1..{MAX_BATCH_SIZE} (uint32).")
+    return batch_size
 
 
 def _runtime_fingerprint(predictor):
@@ -46,7 +71,7 @@ def _runtime_fingerprint(predictor):
 
 def _write_compact_header(handle, num_bytes, predictor, file_format):
     header = COMPACT_HEADER.pack(
-        MAGIC_V2, PROFILE_ID, int(file_format == "v2"), num_bytes,
+        MAGIC_V2, PROFILE_IDS[predictor.profile], int(file_format == "v2"), num_bytes,
         bytes.fromhex(predictor.checkpoint_sha256), _runtime_fingerprint(predictor),
     )
     handle.write(header)
@@ -65,13 +90,17 @@ class _BodyWriter:
         self.crc = zlib.crc32(data, self.crc)
 
 
-def _read_compact_header(handle, predictor):
+def _read_compact_header(handle, predictor=None):
     header = MAGIC_V2 + _read_exact(handle, COMPACT_HEADER.size - len(MAGIC_V2))
     if CRC32.unpack(_read_exact(handle, CRC32.size))[0] != zlib.crc32(header):
         raise ValueError("Compact header CRC32 mismatch.")
     _, profile, mode, num_bytes, checkpoint, runtime = COMPACT_HEADER.unpack(header)
-    if profile != PROFILE_ID or mode not in (0, 1):
+    if profile not in (PROFILE_ID, STEP_PROFILE_ID) or mode not in (0, 1):
         raise ValueError("Unsupported compact profile or stream mode.")
+    if predictor is None:
+        return {"profile": PROFILES[profile]}
+    if PROFILES[profile] != predictor.profile:
+        raise ValueError("Incompatible compressed file: profile mismatch.")
     if checkpoint.hex() != predictor.checkpoint_sha256:
         raise ValueError("Incompatible compressed file: checkpoint_sha256 mismatch.")
     if runtime != _runtime_fingerprint(predictor):
@@ -131,6 +160,8 @@ class PrefixPredictor:
     The fingerprint identifies the external checkpoint, which is not embedded.
     """
 
+    profile = PROFILE
+
     def __init__(self, model, device, checkpoint_sha256):
         self.device = torch.device(device)
         self.model = model.to(self.device).eval()
@@ -158,8 +189,208 @@ class PrefixPredictor:
             torch.cuda.synchronize(self.device)
 
 
-def load_predictor(checkpoint, device="cuda:0"):
+class StepPredictor(PrefixPredictor):
+    """Stateful next-byte predictions using the model's existing Mamba step.
+
+    ``step(symbol)`` consumes one known byte and returns the next-byte distribution.
+    States are zeroed before the next call after 2048 updates. ``reset()`` starts
+    a new file/block. ``__call__`` adapts the codec's sequential history interface;
+    histories must grow by one byte, with length 1 starting a fresh block.
+    """
+
+    profile = STEP_PROFILE
+
+    def __init__(self, model, device, checkpoint_sha256):
+        super().__init__(model, device, checkpoint_sha256)
+        if self.device.type == "cuda":
+            for package in ("nvidia-cutlass-dsl", "quack-kernels", "cuda-bindings"):
+                self.runtime[package] = version(package)
+        cache_dtype = torch.bfloat16 if self.device.type == "cuda" else torch.float32
+        self.states = [
+            block.mixer.allocate_inference_cache(1, BLOCK_SIZE, dtype=cache_dtype)
+            for block in self.model.blocks
+        ]
+        self._token = torch.empty((1,), dtype=torch.long, device=self.device)
+        self.steps_in_block = 0
+
+    @torch.inference_mode()
+    def reset(self):
+        for layer_states in self.states:
+            for state in layer_states:
+                state.zero_()
+        self.steps_in_block = 0
+
+    @torch.inference_mode()
+    def step(self, symbol):
+        if not isinstance(symbol, (int, np.integer)) or not 0 <= symbol <= 255:
+            raise ValueError("Expected a byte value in 0..255.")
+        if self.steps_in_block == BLOCK_SIZE:
+            self.reset()
+        self._token.fill_(int(symbol))
+        with autocast_context(self.device):
+            x = self.model.embedding(self._token)
+            for block, states in zip(self.model.blocks, self.states):
+                # Mamba3.step expects [batch, d_model] and updates all four
+                # cache tensors in place (angle, SSM, K, V).
+                mixed, *_ = block.mixer.step(block.norm1(x), *states)
+                x = x + mixed
+                x = x + block.mlp(block.norm2(x))
+            logits = self.model.lm_head(self.model.final_norm(x)).float()
+        if logits.shape != (1, 256):
+            raise ValueError("The step model must output [1, 256] logits.")
+        last = logits[0].detach().to(device="cpu", dtype=torch.float64)
+        if not torch.isfinite(last).all():
+            raise FloatingPointError("The model produced non-finite logits.")
+        log_probs = last.log_softmax(dim=-1).numpy()
+        self.steps_in_block += 1
+        return np.exp(log_probs), log_probs
+
+    def __call__(self, history):
+        if not 1 <= len(history) <= BLOCK_SIZE:
+            raise ValueError("Expected 1..2048 known bytes in the current block.")
+        if len(history) == 1:
+            self.reset()
+        elif len(history) != self.steps_in_block + 1:
+            raise ValueError("Step histories must grow by one byte; reset at each block.")
+        return self.step(history[-1])
+
+
+class BatchedStepPredictor(PrefixPredictor):
+    """One independent recurrent stream per slot; at most 2047 steps per block.
+
+    reset(B) starts a group of B blocks, where B <= the file's batch_size.
+    Finished slots receive zero inputs and keep their position until group end.
+    """
+
+    profile = BATCHED_PROFILE
+
+    def __init__(self, model, device, checkpoint_sha256, batch_size=DEFAULT_BATCH_SIZE):
+        self.batch_size = validate_batch_size(batch_size)
+        super().__init__(model, device, checkpoint_sha256)
+        if self.device.type == "cuda":
+            for package in ("nvidia-cutlass-dsl", "quack-kernels", "cuda-bindings"):
+                self.runtime[package] = version(package)
+        self.active_batch_size = 0
+        self.states = []
+        self.steps_in_block = 0
+        if self.device.type == "cuda":
+            from .codec_step_adapter import AlignedMambaStep
+
+            self._layer_steps = [AlignedMambaStep(block.mixer) for block in self.model.blocks]
+        else:
+            self._layer_steps = [block.mixer.step for block in self.model.blocks]
+
+    @torch.inference_mode()
+    def reset(self, batch_size=None):
+        if batch_size is None:
+            batch_size = self.active_batch_size or self.batch_size
+        validate_batch_size(batch_size)
+        if batch_size > self.batch_size:
+            raise ValueError("Active batch exceeds the configured batch_size.")
+        if batch_size != self.active_batch_size:
+            dtype = torch.bfloat16 if self.device.type == "cuda" else torch.float32
+            self.states = [block.mixer.allocate_inference_cache(batch_size, BLOCK_SIZE, dtype=dtype)
+                           for block in self.model.blocks]
+            self._token = torch.empty(batch_size, dtype=torch.long, device=self.device)
+            self._host_token = torch.empty(batch_size, dtype=torch.long,
+                                           pin_memory=self.device.type == "cuda")
+            self.active_batch_size = batch_size
+        else:
+            for layer_states in self.states:
+                for state in layer_states:
+                    state.zero_()
+        self.steps_in_block = 0
+
+    @torch.inference_mode()
+    def step(self, tokens, *, active=None):
+        tokens = np.asarray(tokens)
+        if (not self.active_batch_size or tokens.shape != (self.active_batch_size,)
+                or not np.issubdtype(tokens.dtype, np.integer)
+                or np.any(tokens < 0) or np.any(tokens > 255)):
+            raise ValueError("reset(B) then supply B byte values in 0..255.")
+        if self.steps_in_block >= BLOCK_SIZE - 1:
+            raise ValueError("An independent block allows 2047 predictions; reset the batch.")
+        if active is not None:
+            active = np.asarray(active, dtype=bool)
+            if active.shape != tokens.shape:
+                raise ValueError("Active mask must match the batch shape.")
+        self._host_token.numpy()[:] = tokens
+        self._token.copy_(self._host_token, non_blocking=True)
+        with autocast_context(self.device):
+            x = self.model.embedding(self._token)
+            for block, states, step in zip(self.model.blocks, self.states, self._layer_steps):
+                mixed, *_ = step(block.norm1(x), *states)
+                x = x + mixed
+                x = x + block.mlp(block.norm2(x))
+            logits = self.model.lm_head(self.model.final_norm(x)).float()
+        if logits.shape != (self.active_batch_size, 256):
+            raise ValueError("The batched model must output [B, 256] logits.")
+        last = logits.detach().to(device="cpu", dtype=torch.float64)
+        checked = last if active is None else last[torch.from_numpy(active)]
+        if not torch.isfinite(checked).all():
+            raise FloatingPointError("The model produced non-finite logits.")
+        log_probs = last.log_softmax(dim=-1).numpy()
+        self.steps_in_block += 1
+        return np.exp(log_probs), log_probs
+
+    def __call__(self, tokens):
+        return self.step(tokens)
+
+
+class BatchedStepV4Predictor(BatchedStepPredictor):
+    """Batched step predictor with GPU softmax and reusable pinned FP32 output."""
+
+    profile = BATCHED_V4_PROFILE
+
+    @torch.inference_mode()
+    def reset(self, batch_size=None):
+        previous = self.active_batch_size
+        super().reset(batch_size)
+        if self.active_batch_size != previous:
+            self._host_probabilities = torch.empty(
+                (self.active_batch_size, 256), dtype=torch.float32,
+                pin_memory=self.device.type == "cuda")
+
+    def _compute(self):
+        with autocast_context(self.device):
+            x = self.model.embedding(self._token)
+            for block, states, step in zip(self.model.blocks, self.states, self._layer_steps):
+                mixed, *_ = step(block.norm1(x), *states)
+                x = x + mixed
+                x = x + block.mlp(block.norm2(x))
+            logits = self.model.lm_head(self.model.final_norm(x)).float()
+        if logits.shape != (self.active_batch_size, 256):
+            raise ValueError("The batched model must output [B, 256] logits.")
+        return logits.softmax(dim=-1)
+
+    @torch.inference_mode()
+    def step(self, tokens, *, active=None):
+        tokens = np.asarray(tokens)
+        if (not self.active_batch_size or tokens.shape != (self.active_batch_size,)
+                or not np.issubdtype(tokens.dtype, np.integer)
+                or np.any(tokens < 0) or np.any(tokens > 255)):
+            raise ValueError("reset(B) then supply B byte values in 0..255.")
+        if self.steps_in_block >= BLOCK_SIZE - 1:
+            raise ValueError("An independent block allows 2047 predictions; reset the batch.")
+        if active is not None:
+            active = np.asarray(active, dtype=bool)
+            if active.shape != tokens.shape:
+                raise ValueError("Active mask must match the batch shape.")
+        self._host_token.numpy()[:] = tokens
+        self._token.copy_(self._host_token, non_blocking=True)
+        probabilities = self._compute()
+        self._host_probabilities.copy_(probabilities, non_blocking=False)
+        result = self._host_probabilities.numpy()
+        self.steps_in_block += 1
+        return result, None
+
+
+def load_predictor(checkpoint, device="cuda:0", *, inference="batched-step-v5",
+                   batch_size=DEFAULT_BATCH_SIZE):
     """Load the existing project checkpoint without changing its architecture."""
+    if inference not in INFERENCE_PROFILES:
+        raise ValueError(f"Unknown inference mode: {inference}")
+    validate_batch_size(batch_size)
     checkpoint = Path(checkpoint).resolve(strict=True)
     # Must precede CUDA initialization for deterministic cuBLAS operations.
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
@@ -171,9 +402,23 @@ def load_predictor(checkpoint, device="cuda:0"):
             raise RuntimeError("Mamba-3 coding requires BF16 support.")
     from .trainer import load_mamba3_checkpoint
 
+    if inference in ("step", "batched-step", "batched-step-v4", "batched-step-v5"):
+        from mamba_ssm.modules.mamba3 import mamba3_step_fn
+
+        if mamba3_step_fn is None:
+            raise RuntimeError("Mamba step requires nvidia-cutlass-dsl and quack-kernels.")
     model, metadata = load_mamba3_checkpoint(checkpoint)
     del metadata
-    return PrefixPredictor(model, device, sha256_file(checkpoint))
+    if inference == "batched-step":
+        return BatchedStepPredictor(model, device, sha256_file(checkpoint), batch_size)
+    if inference == "batched-step-v5":
+        from .codec_graph import BatchedStepV5Predictor
+
+        return BatchedStepV5Predictor(model, device, sha256_file(checkpoint), batch_size)
+    if inference == "batched-step-v4":
+        return BatchedStepV4Predictor(model, device, sha256_file(checkpoint), batch_size)
+    predictor_type = StepPredictor if inference == "step" else PrefixPredictor
+    return predictor_type(model, device, sha256_file(checkpoint))
 
 
 @contextmanager
@@ -249,14 +494,22 @@ def _metadata(num_bytes, predictor):
         "version": 1,
         "num_bytes": num_bytes,
         "block_size": BLOCK_SIZE,
-        "profile": PROFILE,
+        "profile": predictor.profile,
         "checkpoint_sha256": predictor.checkpoint_sha256,
         "runtime": predictor.runtime,
     }
 
 
-def _read_header(handle, predictor):
+def _read_header(handle, predictor=None):
     magic = _read_exact(handle, len(MAGIC))
+    if magic == MAGIC_V3:
+        from .codec_batched import read_v3_header
+
+        return read_v3_header(handle, predictor)
+    if magic in (MAGIC_V4, MAGIC_V5):
+        from .codec_batched_v4 import read_v4_header
+
+        return read_v4_header(handle, predictor, version=5 if magic == MAGIC_V5 else 4)
     if magic == MAGIC_V2:
         return _read_compact_header(handle, predictor)
     if magic != MAGIC:
@@ -273,11 +526,33 @@ def _read_header(handle, predictor):
     num_bytes = metadata.get("num_bytes")
     if type(num_bytes) is not int or not 0 <= num_bytes < 2**64:
         raise ValueError("Invalid original byte count.")
+    if metadata.get("profile") not in (PROFILE, STEP_PROFILE):
+        raise ValueError("Unsupported probability profile.")
+    if predictor is None:
+        return metadata
     expected = _metadata(num_bytes, predictor)
     for key, value in expected.items():
         if metadata.get(key) != value:
             raise ValueError(f"Incompatible compressed file: {key} mismatch.")
     return {**metadata, "file_format": "v1"}
+
+
+def read_inference_mode(path):
+    """Select a predictor from the header; decode still validates all metadata."""
+    with Path(path).open("rb") as handle:
+        profile = _read_header(handle)["profile"]
+    return next(mode for mode, value in INFERENCE_PROFILES.items() if value == profile)
+
+
+def read_codec_settings(path):
+    """Read the prediction mode and fixed batch grouping before loading weights."""
+    with Path(path).open("rb") as handle:
+        metadata = _read_header(handle)
+    settings = {"inference": next(mode for mode, profile in INFERENCE_PROFILES.items()
+                                   if profile == metadata["profile"])}
+    if "batch_size" in metadata:
+        settings["batch_size"] = metadata["batch_size"]
+    return settings
 
 
 def _metrics(num_bytes, compressed_bytes, payload_bytes, seconds, operation):
@@ -297,8 +572,23 @@ def _metrics(num_bytes, compressed_bytes, payload_bytes, seconds, operation):
     }
 
 
-def encode_file(input_path, output_path, predictor, *, file_format="v2"):
+def encode_file(input_path, output_path, predictor, *, file_format=None):
     """Write a real .m3rc file; return BPB and end-to-end coding throughput."""
+    defaults = {BATCHED_PROFILE: "v3", BATCHED_V4_PROFILE: "v4", BATCHED_V5_PROFILE: "v5"}
+    file_format = file_format or defaults.get(predictor.profile, "v2")
+    expected = {"v3": BATCHED_PROFILE, "v4": BATCHED_V4_PROFILE, "v5": BATCHED_V5_PROFILE}
+    if file_format in expected and predictor.profile != expected[file_format]:
+        raise ValueError(f"{file_format} requires its matching batched-step predictor.")
+    if file_format not in expected and predictor.profile in expected.values():
+        raise ValueError("Batched-step predictors require their matching v3, v4 or v5 format.")
+    if file_format == "v3":
+        from .codec_batched import encode_batched_file
+
+        return encode_batched_file(input_path, output_path, predictor)
+    if file_format in ("v4", "v5"):
+        from .codec_batched_v4 import encode_batched_v4_file
+
+        return encode_batched_v4_file(input_path, output_path, predictor)
     input_path, output_path = Path(input_path), Path(output_path)
     if file_format not in FILE_FORMATS:
         raise ValueError(f"Unknown file format: {file_format}")
@@ -367,7 +657,7 @@ def encode_file(input_path, output_path, predictor, *, file_format="v2"):
         "original_sha256": digest.hexdigest(),
         "checkpoint_sha256": predictor.checkpoint_sha256,
         "runtime": predictor.runtime,
-        "profile": PROFILE,
+        "profile": predictor.profile,
     })
     result.update(_format_metrics(file_format, num_bytes))
     return result
@@ -375,6 +665,14 @@ def encode_file(input_path, output_path, predictor, *, file_format="v2"):
 
 def decode_file(input_path, output_path, predictor):
     """Decode using only the compressed file, checkpoint and decoded history."""
+    if predictor.profile == BATCHED_PROFILE:
+        from .codec_batched import decode_batched_file
+
+        return decode_batched_file(input_path, output_path, predictor)
+    if predictor.profile in (BATCHED_V4_PROFILE, BATCHED_V5_PROFILE):
+        from .codec_batched_v4 import decode_batched_v4_file
+
+        return decode_batched_v4_file(input_path, output_path, predictor)
     input_path, output_path = Path(input_path), Path(output_path)
     if input_path.resolve() == output_path.resolve():
         raise ValueError("Input and output must be different files.")
@@ -433,7 +731,8 @@ def decode_file(input_path, output_path, predictor):
     predictor.synchronize()
     result = _metrics(num_bytes, input_path.stat().st_size, payload_bytes,
                       time.perf_counter() - started, "decode")
-    result.update(decoded_sha256=digest.hexdigest(), checksum_verified=True)
+    result.update(decoded_sha256=digest.hexdigest(), checksum_verified=True,
+                  profile=predictor.profile)
     result.update(_format_metrics(file_format, num_bytes))
     return result
 
@@ -449,7 +748,7 @@ def verify_files(original_path, decoded_path):
                 return True
 
 
-def roundtrip_file(input_path, compressed_path, decoded_path, predictor, *, file_format="v2"):
+def roundtrip_file(input_path, compressed_path, decoded_path, predictor, *, file_format=None):
     paths = [Path(path).resolve() for path in (input_path, compressed_path, decoded_path)]
     if len(set(paths)) != 3:
         raise ValueError("Original, compressed and decoded paths must be distinct.")

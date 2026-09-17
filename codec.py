@@ -6,7 +6,8 @@ from pathlib import Path
 import sys
 
 from mamba3_byte_compress.codec import (
-    decode_file, encode_file, load_predictor, roundtrip_file,
+    decode_file, encode_file, load_predictor, read_codec_settings, roundtrip_file,
+    validate_batch_size,
 )
 from mamba3_byte_compress.experiments import DEFAULT_CHECKPOINT
 
@@ -25,8 +26,13 @@ def parse_args(argv=None):
         command.add_argument("--checkpoint", default=str(DEFAULT_CHECKPOINT))
         command.add_argument("--device", default="cuda:0")
         if name != "decode":
-            command.add_argument("--format", choices=("v1", "v2-framed", "v2"), default="v2",
-                                 help="Default v2: compact header and a shared Range stream")
+            command.add_argument("--inference",
+                                 choices=("batched-step-v5", "batched-step-v4", "batched-step", "step", "prefix"),
+                                 help="Default batched-step-v5: fixed buffers and CUDA Graph inference")
+            command.add_argument("--format", choices=("v1", "v2-framed", "v2", "v3", "v4", "v5"),
+                                 help="Default v5; v4 and older formats remain decodable")
+            command.add_argument("--batch-size", type=int,
+                                 help="Batched-step slots: positive uint32, limited by available memory (default 128)")
         command.add_argument("--results", help="Optional JSON report (must not exist)")
     return parser.parse_args(argv)
 
@@ -42,7 +48,27 @@ def main(argv=None):
     for path in paths:
         if path.exists():
             raise FileExistsError(f"Refusing to overwrite: {path}")
-    predictor = load_predictor(args.checkpoint, args.device)
+    if args.command == "decode":
+        settings = read_codec_settings(args.input)
+    else:
+        inferred = {"v1": "step", "v2-framed": "step", "v2": "step",
+                    "v3": "batched-step", "v4": "batched-step-v4", "v5": "batched-step-v5"}
+        inference = args.inference or inferred.get(args.format, "batched-step-v5")
+        default_formats = {"batched-step-v5": "v5", "batched-step-v4": "v4", "batched-step": "v3",
+                           "step": "v2", "prefix": "v2"}
+        args.format = args.format or default_formats[inference]
+        compatible = ((inference == "batched-step-v5" and args.format == "v5")
+                      or (inference == "batched-step-v4" and args.format == "v4")
+                      or (inference == "batched-step" and args.format == "v3")
+                      or (inference in ("step", "prefix") and args.format in ("v1", "v2-framed", "v2")))
+        if not compatible:
+            raise ValueError("The selected format and inference mode are incompatible.")
+        settings = {"inference": inference}
+        if inference in ("batched-step", "batched-step-v4", "batched-step-v5"):
+            settings["batch_size"] = validate_batch_size(128 if args.batch_size is None else args.batch_size)
+        elif args.batch_size is not None:
+            raise ValueError("--batch-size requires batched-step.")
+    predictor = load_predictor(args.checkpoint, args.device, **settings)
     if args.command == "roundtrip":
         result = roundtrip_file(args.input, args.compressed, args.decoded, predictor, file_format=args.format)
     else:

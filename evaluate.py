@@ -2,9 +2,11 @@
 
 import argparse
 import csv
+from itertools import islice
 import json
 import math
 import sys
+import time
 from pathlib import Path
 
 import torch
@@ -18,7 +20,7 @@ from mamba3_byte_compress.experiments import (
     create_experiment_directory,
     validate_experiment_name,
 )
-from mamba3_byte_compress.metrics import evaluate_probability_model
+from mamba3_byte_compress.metrics import autocast_context, evaluate_probability_model
 from mamba3_byte_compress.trainer import load_mamba3_checkpoint
 
 
@@ -53,6 +55,8 @@ def parse_args(argv=None):
     parser.add_argument("--sequence-length", type=_positive_int, default=DEFAULT_SEQUENCE_LENGTH,
                         help="Default: 2048, independent of checkpoint configuration")
     parser.add_argument("--num-workers", type=_nonnegative_int, default=0)
+    parser.add_argument("--warmup-batches", type=_nonnegative_int, default=0,
+                        help="Forward-only warmup batches excluded from reported inference time")
     return parser.parse_args(argv)
 
 
@@ -71,7 +75,7 @@ def _cuda_device(device):
 
 
 def evaluate_file(test_file, checkpoint=DEFAULT_CHECKPOINT, *, device="cuda:0", batch_size=None,
-                  sequence_length=DEFAULT_SEQUENCE_LENGTH, num_workers=0):
+                  sequence_length=DEFAULT_SEQUENCE_LENGTH, num_workers=0, warmup_batches=0):
     """Load project weights and return file-level metrics plus run metadata."""
     test_file = Path(test_file).resolve()
     checkpoint_path = Path(checkpoint).resolve()
@@ -79,11 +83,13 @@ def evaluate_file(test_file, checkpoint=DEFAULT_CHECKPOINT, *, device="cuda:0", 
         if not path.is_file():
             raise FileNotFoundError(f"Missing {label} file: {path}")
     num_workers = _nonnegative_int(num_workers)
+    warmup_batches = _nonnegative_int(warmup_batches)
     if batch_size is not None:
         batch_size = _positive_int(batch_size)
     if sequence_length is not None:
         sequence_length = _positive_int(sequence_length)
     device = _cuda_device(device)
+    model_load_started = time.perf_counter()
     try:
         model, loaded = load_mamba3_checkpoint(checkpoint_path)
     except (AttributeError, KeyError, TypeError) as error:
@@ -112,18 +118,49 @@ def evaluate_file(test_file, checkpoint=DEFAULT_CHECKPOINT, *, device="cuda:0", 
     }
     del loaded  # Release optimizer and other training state before inference.
     model.to(device).eval()
+    model_load_peak_allocated_gb = None
+    model_load_peak_reserved_gb = None
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+        model_load_peak_allocated_gb = torch.cuda.max_memory_allocated(device) / 1_000_000_000.0
+        model_load_peak_reserved_gb = torch.cuda.max_memory_reserved(device) / 1_000_000_000.0
+    model_load_seconds = time.perf_counter() - model_load_started
     dataset = ByteEvaluationDataset(test_file, sequence_length)
     loader = DataLoader(
         dataset, batch_size=batch_size, shuffle=False, drop_last=False,
         num_workers=num_workers, pin_memory=device.type == "cuda",
     )
+    warmup_count = min(warmup_batches, len(loader))
+    warmup_seconds = 0.0
+    warmup_peak_allocated_gb = None
+    warmup_peak_reserved_gb = None
+    if warmup_count:
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+            torch.cuda.reset_peak_memory_stats(device)
+        started = time.perf_counter()
+        with torch.inference_mode(), autocast_context(device, enabled=True):
+            for batch in islice(loader, warmup_count):
+                model(batch["input_tokens"].to(device, non_blocking=True))
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+            warmup_peak_allocated_gb = torch.cuda.max_memory_allocated(device) / 1_000_000_000.0
+            warmup_peak_reserved_gb = torch.cuda.max_memory_reserved(device) / 1_000_000_000.0
+        warmup_seconds = time.perf_counter() - started
     with torch.inference_mode():
         result = evaluate_probability_model(
             model, loader, device, use_bf16=True, measure_performance=True
         )
     if not all(math.isfinite(value) for value in result.values() if isinstance(value, float)):
         raise FloatingPointError("Evaluation produced non-finite metrics.")
-    result.update(metadata)
+    result.update(metadata, warmup_batches_requested=warmup_batches,
+                  warmup_batches_completed=warmup_count,
+                  model_load_seconds=model_load_seconds,
+                  warmup_seconds=warmup_seconds,
+                  model_load_peak_gpu_memory_gb=model_load_peak_allocated_gb,
+                  model_load_peak_gpu_reserved_memory_gb=model_load_peak_reserved_gb,
+                  warmup_peak_gpu_memory_gb=warmup_peak_allocated_gb,
+                  warmup_peak_gpu_reserved_memory_gb=warmup_peak_reserved_gb)
     return result
 
 
@@ -157,7 +194,7 @@ def main(argv=None):
         result = evaluate_file(
             args.test_file, args.checkpoint, device=args.device,
             batch_size=args.batch_size, sequence_length=args.sequence_length,
-            num_workers=args.num_workers,
+            num_workers=args.num_workers, warmup_batches=args.warmup_batches,
         )
     except BaseException:
         # Failed evaluations must not leave an empty experiment behind.

@@ -15,6 +15,7 @@ from mamba3_byte_compress.model import (
     RMSNorm,
     SwiGLU,
     analytic_parameter_counts,
+    autoregressive_macs,
     build_mamba3_byte_model,
     parameter_counts,
 )
@@ -108,6 +109,25 @@ class DefaultMamba3ModelTest(unittest.TestCase):
             "backbone_trainable_params": 3_275_212,
             "total_trainable_params": 3_455_436,
         })
+
+    def test_recurrent_codec_macs_for_both_depths(self):
+        baseline = autoregressive_macs(
+            BASELINE_MAMBA3_CONFIG, predicted_bytes=999_511_718,
+        )
+        formal = autoregressive_macs(
+            FORMAL_MAMBA3_CONFIG, predicted_bytes=999_511_718,
+        )
+        self.assertEqual(baseline["dense_macs_per_predicted_byte"], 3_357_376)
+        self.assertEqual(baseline["state_macs_per_predicted_byte"], 720_896)
+        self.assertEqual(baseline["macs_per_predicted_byte"], 4_078_272)
+        self.assertEqual(baseline["macs_per_full_block"], 8_348_222_784)
+        self.assertEqual(formal["dense_macs_per_predicted_byte"], 6_624_640)
+        self.assertEqual(formal["state_macs_per_predicted_byte"], 1_441_792)
+        self.assertEqual(formal["macs_per_predicted_byte"], 8_066_432)
+        self.assertEqual(formal["macs_per_full_block"], 16_511_986_304)
+        self.assertEqual(
+            formal["total_macs"], formal["macs_per_predicted_byte"] * 999_511_718,
+        )
 
 
 @unittest.skipUnless(LEGACY_ROOT.is_dir(), "frozen OmniZip baseline is unavailable")

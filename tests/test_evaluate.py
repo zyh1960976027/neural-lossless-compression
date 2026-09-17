@@ -195,6 +195,15 @@ class EvaluationTest(unittest.TestCase):
         self.assertEqual(args.sequence_length, 2048)
         self.assertEqual(Path(args.checkpoint), evaluate.DEFAULT_CHECKPOINT)
         self.assertIsNone(args.name)
+        self.assertEqual(args.warmup_batches, 0)
+
+    def test_warmup_batches_are_excluded_and_reported(self):
+        result = self.run_evaluation(batch_size=1, sequence_length=2, warmup_batches=2)
+        self.assertEqual(result["warmup_batches_requested"], 2)
+        self.assertEqual(result["warmup_batches_completed"], 2)
+        self.assertGreater(result["warmup_seconds"], 0.0)
+        self.assertIsNone(result["warmup_peak_gpu_memory_gb"])
+        self.assertGreater(result["inference_seconds"], 0.0)
 
     def test_failed_evaluation_leaves_no_empty_experiment(self):
         self.raw.unlink()
@@ -205,7 +214,8 @@ class EvaluationTest(unittest.TestCase):
     def test_invalid_cli_parameters(self):
         base = ["--test-file", str(self.raw), "--checkpoint", str(self.checkpoint)]
         for option, value in (("--batch-size", "0"), ("--sequence-length", "-1"),
-                              ("--num-workers", "-1"), ("--batch-size", "bad")):
+                              ("--num-workers", "-1"), ("--warmup-batches", "-1"),
+                              ("--batch-size", "bad")):
             with self.subTest(option=option, value=value), contextlib.redirect_stderr(io.StringIO()):
                 with self.assertRaises(SystemExit):
                     evaluate.parse_args(base + [option, value])
