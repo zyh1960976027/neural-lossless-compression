@@ -10,6 +10,7 @@ import torch
 from mamba3_byte_compress.model import (
     BASELINE_MAMBA3_CONFIG,
     FORMAL_MAMBA3_CONFIG,
+    MTP4_MAMBA3_CONFIG,
     VOCAB_SIZE,
     Mamba3ByteLM,
     RMSNorm,
@@ -17,6 +18,7 @@ from mamba3_byte_compress.model import (
     analytic_parameter_counts,
     autoregressive_macs,
     build_mamba3_byte_model,
+    mtp4_sequence_macs,
     parameter_counts,
 )
 
@@ -128,6 +130,18 @@ class DefaultMamba3ModelTest(unittest.TestCase):
         self.assertEqual(
             formal["total_macs"], formal["macs_per_predicted_byte"] * 999_511_718,
         )
+
+    def test_mtp4_sequence_codec_macs(self):
+        result = mtp4_sequence_macs(
+            MTP4_MAMBA3_CONFIG,
+            state_tokens=998_535_154,
+            prediction_groups=250_000_000,
+            input_bytes=1_000_000_000,
+        )
+        self.assertEqual(result["backbone_macs_per_state_token"], 3_988_160)
+        self.assertEqual(result["prediction_head_macs_per_group"], 360_448)
+        self.assertEqual(result["total_macs"], 4_072_429_959_776_640)
+        self.assertEqual(result["macs_per_input_byte"], 4_072_429.95977664)
 
 
 @unittest.skipUnless(LEGACY_ROOT.is_dir(), "frozen OmniZip baseline is unavailable")

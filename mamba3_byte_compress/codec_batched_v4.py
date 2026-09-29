@@ -13,6 +13,15 @@ import numpy as np
 from . import codec as c
 
 
+def _phase_start(timings):
+    return time.perf_counter() if timings is not None else None
+
+
+def _phase_stop(timings, name, started):
+    if timings is not None:
+        timings[name] = timings.get(name, 0.0) + time.perf_counter() - started
+
+
 def read_v4_header(handle, predictor=None, *, version=4):
     magic, profile_id, expected_profile = _format_config(version)
     header = magic + c._read_exact(handle, c.BATCHED_HEADER.size - len(magic))
@@ -98,12 +107,14 @@ def encode_batched_v4_file(input_path, output_path, predictor):
     model_nll = 0.0
     family = constriction.stream.model.Categorical(perfect=False)
     uniform = c._uniform()
+    timings = {} if getattr(predictor, "collect_phase_timings", False) else None
     with c._coding_mode(predictor), input_path.open("rb") as source, c._new_output(output_path) as target:
         count = os.fstat(source.fileno()).st_size
         _write_header(target, count, predictor)
         body = c._BodyWriter(target)
         remaining = count
         while remaining:
+            phase = _phase_start(timings)
             lengths = _group_lengths(remaining, predictor.batch_size)
             data = c._read_exact(source, int(lengths.sum()))
             digest.update(data)
@@ -113,26 +124,45 @@ def encode_batched_v4_file(input_path, output_path, predictor):
                 values[lane, :length] = np.frombuffer(
                     data, dtype=np.uint8, count=int(length), offset=offset)
                 offset += int(length)
+            _phase_stop(timings, "input_read_hash_pack", phase)
+            phase = _phase_start(timings)
             encoder = constriction.stream.queue.RangeEncoder()
             encoder.encode(values[:, 0].astype(np.int32), uniform)
+            _phase_stop(timings, "range_coding", phase)
+            phase = _phase_start(timings)
             predictor.reset(len(lengths))
+            _phase_stop(timings, "state_reset", phase)
             for position in range(1, values.shape[1]):
+                phase = _phase_start(timings)
                 active = lengths > position
                 tokens = np.where(active, values[:, position - 1], 0)
+                _phase_stop(timings, "step_input", phase)
+                phase = _phase_start(timings)
                 probabilities, _ = predictor.step(tokens, active=active)
+                _phase_stop(timings, "predictor", phase)
+                phase = _phase_start(timings)
                 symbols = values[active, position].astype(np.int32)
                 active_probabilities = _active_rows(probabilities, active)
+                _phase_stop(timings, "probability_cpu", phase)
+                phase = _phase_start(timings)
                 encoder.encode(symbols, family, active_probabilities)
+                _phase_stop(timings, "range_coding", phase)
+                phase = _phase_start(timings)
                 selected = active_probabilities[np.arange(len(symbols)), symbols]
                 if np.any(selected <= 0):
                     raise FloatingPointError("A coded symbol has zero floating-point probability.")
                 model_nll -= float(np.log(selected.astype(np.float64)).sum())
                 steps += 1
+                _phase_stop(timings, "probability_cpu", phase)
+            phase = _phase_start(timings)
             payload_bytes += c._write_frame(body, encoder)
+            _phase_stop(timings, "container_write", phase)
             remaining -= len(data)
         if source.read(1):
             raise ValueError("Input file size changed during encoding.")
+        phase = _phase_start(timings)
         target.write(c.COMPACT_TRAILER.pack(body.crc, digest.digest()))
+        _phase_stop(timings, "container_write", phase)
     predictor.synchronize()
     result = _metrics(count, output_path.stat().st_size, payload_bytes,
                       time.perf_counter() - started, "encode", predictor, steps)
@@ -142,6 +172,9 @@ def encode_batched_v4_file(input_path, output_path, predictor):
                   nll_nats_total=nll, nll_nats_model=model_nll,
                   nll_nats_uniform_seeds=uniform_nll, original_sha256=digest.hexdigest(),
                   checkpoint_sha256=predictor.checkpoint_sha256, runtime=predictor.runtime)
+    if timings is not None:
+        timings["other"] = max(0.0, result["encode_seconds"] - sum(timings.values()))
+        result["phase_seconds"] = timings
     return result
 
 
@@ -155,6 +188,7 @@ def decode_batched_v4_file(input_path, output_path, predictor):
     payload_bytes = steps = 0
     family = constriction.stream.model.Categorical(perfect=False)
     uniform = c._uniform()
+    timings = {} if getattr(predictor, "collect_phase_timings", False) else None
     with c._coding_mode(predictor), input_path.open("rb") as source:
         metadata = c._read_header(source, predictor)
         count = metadata["num_bytes"]
@@ -162,24 +196,40 @@ def decode_batched_v4_file(input_path, output_path, predictor):
         with c._new_output(output_path) as target:
             remaining = count
             while remaining:
+                phase = _phase_start(timings)
                 lengths = _group_lengths(remaining, predictor.batch_size)
                 max_symbols = int(lengths.sum())
                 decoder, size = _read_group_frame(body, max_symbols)
                 payload_bytes += size
                 values = np.zeros((len(lengths), int(lengths.max())), dtype=np.uint8)
+                _phase_stop(timings, "container_read_and_allocate", phase)
+                phase = _phase_start(timings)
                 values[:, 0] = decoder.decode(uniform, len(lengths)).astype(np.uint8)
+                _phase_stop(timings, "range_coding", phase)
+                phase = _phase_start(timings)
                 predictor.reset(len(lengths))
+                _phase_stop(timings, "state_reset", phase)
                 for position in range(1, values.shape[1]):
+                    phase = _phase_start(timings)
                     active = lengths > position
                     tokens = np.where(active, values[:, position - 1], 0)
+                    _phase_stop(timings, "step_input", phase)
+                    phase = _phase_start(timings)
                     probabilities, _ = predictor.step(tokens, active=active)
+                    _phase_stop(timings, "predictor", phase)
+                    phase = _phase_start(timings)
                     active_probabilities = _active_rows(probabilities, active)
+                    _phase_stop(timings, "probability_cpu", phase)
+                    phase = _phase_start(timings)
                     values[active, position] = decoder.decode(family, active_probabilities).astype(np.uint8)
+                    _phase_stop(timings, "range_coding", phase)
                     steps += 1
                 for lane, length in enumerate(lengths):
+                    phase = _phase_start(timings)
                     data = values[lane, :length].tobytes()
                     target.write(data)
                     digest.update(data)
+                    _phase_stop(timings, "output_write_hash", phase)
                 remaining -= int(lengths.sum())
             if body.read(1):
                 raise ValueError("Unexpected trailing data in compressed file.")
@@ -189,4 +239,7 @@ def decode_batched_v4_file(input_path, output_path, predictor):
     result = _metrics(count, input_path.stat().st_size, payload_bytes,
                       time.perf_counter() - started, "decode", predictor, steps)
     result.update(decoded_sha256=digest.hexdigest(), checksum_verified=True)
+    if timings is not None:
+        timings["other"] = max(0.0, result["decode_seconds"] - sum(timings.values()))
+        result["phase_seconds"] = timings
     return result

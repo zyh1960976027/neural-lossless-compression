@@ -31,6 +31,36 @@ cmp /path/to/input.bin /path/to/decoded.bin
 它会执行编解码并逐字节比较。输出路径父目录须存在，已有文件不会被覆盖；
 发生异常会删除本次不完整输出。解码只需要压缩文件、同一 checkpoint 和兼容运行环境。
 
+MTP-4 模型使用新的 v6 格式：
+
+```bash
+python codec.py encode \
+  --input /path/to/input.bin --output /path/to/input.m3rc \
+  --checkpoint experiments/train/<mtp实验>/checkpoints/best.pt \
+  --inference mtp4-batched-sequence --format v6 --batch-size 128 \
+  --execution auto
+python codec.py decode \
+  --input /path/to/input.m3rc --output /path/to/decoded.bin \
+  --checkpoint experiments/train/<mtp实验>/checkpoints/best.pt \
+  --execution auto
+```
+
+v6 每次由当前状态产生未来 4 个字节的概率，按 Head1 至 Head4 编码。得到这 4 个真实字节后，
+将它们作为长度为 4 的短序列送入 Mamba fused selective scan，从已有 Angle、SSM、K、V 状态
+直接推进到组末状态，再预测下一组。底层递推与连续执行四次单步更新具有相同数学含义，但 BF16
+内核的并行归约和近似函数不同，概率不要求逐位一致；编码端和解码端固定使用同一 continuation
+路径，因此仍能逐字节无损恢复。块首字节、2048-byte 独立分块和 batch 分组规则与 v4/v5 相同。
+
+MTP-4 的 `--execution auto` 和 `graph` 使用两张 CUDA Graph，分别记录初始单字节计算和后续
+四字节续算。每个实际 batch 形状拥有固定输入、概率和四类循环状态缓冲区；捕获结束后重新清零
+状态，完整批与尾批分别缓存。`--execution sequence` 保留未使用 Graph 的基线路径。两条路径执行
+相同算术，概率、缓存状态和 v6 码流逐位一致，因此旧 v6 文件可以直接使用 Graph 路径解码。
+
+v6 使用 `M3RC\x06\r\n\x1a` magic 和概率配置编号 6，沿用批量容器的固定头部、每组 Range
+流、CRC32、checkpoint 指纹、运行环境指纹及原文 SHA256。结果 JSON 另外记录
+`num_prediction_groups`、`num_model_forwards`、`state_tokens_processed`、四个头各自的预测字节数
+与编码 NLL。等权和距离加权损失训练出的 MTP-4 checkpoint 结构相同，均可直接使用。
+
 ## 批量 state 与独立块
 
 文件按原始顺序切成互不重叠的块。块数为 `ceil(N/2048)`，每块首 byte 成本为 8 bit。
@@ -154,9 +184,12 @@ v3 仍可读取，也可通过 `--inference batched-step --format v3` 显式编�
 
 `--inference step` 保留旧单槽位状态推理，`--inference prefix` 保留旧完整历史前向；
 这两者默认输出 v2，也可显式指定 `--format v1` 或 `--format v2-framed`。
-只指定旧格式而未指定 inference 时自动选择对应推理方式。v5 仅允许 batched-step-v5；v4 仅允许 batched-step-v4，
-v3 仅允许 batched-step。
+只指定格式而未指定 inference 时自动选择对应推理方式。v6 仅允许 mtp4-batched-sequence，
+v5 仅允许 batched-step-v5，v4 仅允许 batched-step-v4，v3 仅允许 batched-step。
 旧码流解码自动识别，不要求额外参数。
+
+MTP-4 可用 `--execution sequence` 显式回到基线，或用 `--execution graph` 强制使用 CUDA Graph；
+当前 `auto` 选择经过端到端实验验证的 Graph 路径。执行方式不写入 v6 码流，因为两者概率逐位一致。
 
 旧语义为：文件首 byte 均匀编码，后续每组 2048 个预测目标以前一个 byte 为种子，
 相邻组共享种子 byte。step 每 2048 次预测重置，prefix 每次完整前向 `[1,2048]`。
@@ -214,6 +247,16 @@ python scripts/benchmark_codec_batched.py \
 1024、1024、1024、1024、787 五批。输出目录必须不存在。
 v5 文件需使用支持 v5 的解码器；已有 v4、v3 文件仍可读取。
 
+MTP-4 基线与 Graph 的完整 batch 扫描、三次正式测试和冷启动测试使用：
+
+```bash
+python scripts/benchmark_mtp4_inference.py \
+  --output experiments/test/mtp4_graph_optimization
+```
+
+脚本依次测试 batch 128、512、1024，随后在共同最佳 batch 上对两条路径各运行至少三次，
+保存独立进程编解码产物、JSON、CSV、源码指纹和中文报告。
+
 实验脚本还记录加载、预热、正式编解码三个阶段的 PyTorch CUDA 显存峰值。
 `codec_peak_allocated_bytes` 是正式阶段张量分配峰值，`codec_peak_reserved_bytes`
 是缓存分配器预留峰值；`run_peak_*` 是三个阶段峰值的最大值。数值以 bytes 保存，
@@ -230,3 +273,13 @@ python -m unittest discover -s tests -p test_codec_step.py -v
 覆盖状态独立及批次清零；v3/v4 的 4098-byte、B=2 独立编解码（含空文件和单字节快速边界）；
 格式参数记录、识别与损坏拒绝。CPU 可控状态模型禁止调用完整 forward。
 真实 GPU 正确性通过所选样本长度的独立进程编解码验证。旧测试保留，需要相关回归时按需运行。
+
+MTP-4 v6 的 CPU 容器测试和真实 GPU continuation 测试分别运行：
+
+```bash
+python -m unittest discover -s tests -p test_codec_mtp4.py -v
+MAMBA_MTP_CODEC_GPU_TEST=1 python -m unittest discover -s tests -p test_codec_mtp4.py -v
+```
+
+GPU 测试会分别加载等权、距离加权 checkpoint 完成 roundtrip，并比较 fused continuation 与连续
+执行 `step` 的概率和四类循环状态误差。

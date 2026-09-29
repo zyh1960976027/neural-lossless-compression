@@ -115,11 +115,19 @@ def stage(args):
     # Keep host-side entropy coding measurements comparable across runs.
     torch.set_num_threads(1)
     raw, packed = sample_paths(args)
-    inference = {"v3": "batched-step", "v4": "batched-step-v4", "v5": "batched-step-v5"}[args.format]
+    inference = {
+        "v3": "batched-step",
+        "v4": "batched-step-v4",
+        "v5": "batched-step-v5",
+        "v6": "mtp4-batched-sequence",
+    }[args.format]
     settings = ({"inference": inference, "batch_size": args.batch_size}
                 if args.stage == "encode" else c.read_codec_settings(packed))
+    if args.format == "v6":
+        settings["execution"] = args.execution
     started = time.perf_counter()
     predictor = c.load_predictor(args.checkpoint, args.device, **settings)
+    predictor.collect_phase_timings = args.phase_timing
     if args.format == "v5":
         predictor.use_graph = args.execution == "graph"
     predictor.synchronize()
@@ -143,8 +151,12 @@ def stage(args):
     with c._coding_mode(predictor):
         for size in (() if args.cold else dict.fromkeys(groups)):
             predictor.reset(size)
-            for _ in range(2):
-                predictor.step(np.zeros(size, dtype=np.uint8))
+            if args.format == "v6":
+                predictor.start(np.zeros(size, dtype=np.uint8))
+                predictor.advance(np.zeros((size, 4), dtype=np.uint8))
+            else:
+                for _ in range(2):
+                    predictor.step(np.zeros(size, dtype=np.uint8))
         if not args.cold:
             predictor.reset(groups[0])
         predictor.synchronize()
@@ -192,11 +204,13 @@ def main():
                         help="Zero-based byte offset in the source file")
     parser.add_argument("--direct-source", action="store_true",
                         help="Encode the source directly; requires offset 0 and sample size equal to file size")
-    parser.add_argument("--format", choices=("v3", "v4", "v5"), default="v5",
-                        help="v5 adds CUDA Graph inference; v4 and v3 remain available for comparison")
-    parser.add_argument("--execution", choices=("graph", "buffered"), default="graph",
-                        help="v5 only: graph replay or buffered eager ablation")
+    parser.add_argument("--format", choices=("v3", "v4", "v5", "v6"), default="v5",
+                        help="v6 uses batched MTP-4 sequence continuation; v3-v5 remain available")
+    parser.add_argument("--execution", choices=("auto", "graph", "buffered", "sequence"), default="graph",
+                        help="v5: graph/buffered; v6: auto/graph/sequence")
     parser.add_argument("--cold", action="store_true", help="Include preparation in codec time")
+    parser.add_argument("--phase-timing", action="store_true",
+                        help="Collect instrumented MTP-4 end-to-end phase timings")
     parser.add_argument("--resume", action="store_true",
                         help="Continue an incomplete output directory after validating completed stages")
     parser.add_argument("--stage", choices=("encode", "decode"), help=argparse.SUPPRESS)
@@ -204,6 +218,10 @@ def main():
     from mamba3_byte_compress import codec as c
 
     c.validate_batch_size(args.batch_size)
+    if args.format == "v6" and args.execution == "buffered":
+        parser.error("--format v6 supports auto, graph or sequence execution.")
+    if args.format != "v6" and args.execution in ("auto", "sequence"):
+        parser.error("--execution auto/sequence is only valid with --format v6.")
     if args.sample_bytes <= 0 or args.source_offset < 0:
         parser.error("--sample-bytes must be positive and --source-offset nonnegative.")
     args.source = args.source.resolve()
@@ -272,11 +290,20 @@ def main():
             command.append("--direct-source")
         if args.cold:
             command.append("--cold")
+        if args.phase_timing:
+            command.append("--phase-timing")
+        environment = os.environ.copy()
+        cache_root = environment.get("TRITON_CACHE_DIR")
+        if args.cold and cache_root:
+            environment["TRITON_CACHE_DIR"] = str(Path(cache_root) / operation)
         process_start = time.perf_counter()
         if args.resume:
             command.append("--resume")
         with next_log_path(args.output, operation).open("x") as log:
-            subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+            subprocess.run(
+                command, cwd=ROOT, env=environment,
+                stdout=log, stderr=subprocess.STDOUT, check=True,
+            )
         process_seconds[operation] = time.perf_counter() - process_start
         print(f"{operation} complete", flush=True)
     encoded = json.loads((args.output / "encode.json").read_text())
@@ -297,9 +324,13 @@ def main():
     sources = ("codec.py", "mamba3_byte_compress/codec.py", "mamba3_byte_compress/codec_batched.py",
                "mamba3_byte_compress/codec_batched_v4.py",
                "mamba3_byte_compress/codec_step_adapter.py", "mamba3_byte_compress/codec_graph.py",
+               "mamba3_byte_compress/codec_mtp4.py",
+               "mamba3_byte_compress/codec_sequence_adapter.py",
                "mamba3_byte_compress/model.py", "mamba3_byte_compress/trainer.py",
                "mamba3_byte_compress/metrics.py", "mamba3_byte_compress/config.py",
-               "scripts/benchmark_codec_batched.py")
+               "scripts/benchmark_codec_batched.py",
+               "scripts/benchmark_mtp4_inference.py",
+               "scripts/profile_mtp4_short_sequence.py")
     verification["source_sha256"] = {name: c.sha256_file(ROOT / name) for name in sources}
     if not (args.output / "verification.json").exists():
         write_json(args.output / "verification.json", verification)

@@ -9,7 +9,10 @@ import numpy as np
 import torch
 
 from mamba3_byte_compress import codec as c
-from test_codec_step import StatefulModel
+try:
+    from .test_codec_step import StatefulModel
+except ImportError:  # unittest discovery adds tests/ directly to sys.path.
+    from test_codec_step import StatefulModel
 
 
 class ContainerPredictor(c.BatchedStepV4Predictor):

@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3400" height="2650" viewBox="0 0 3400 2650">
+<title>MTP-4 模型推理架构</title><desc>两层共享 Mamba-3 主干，四个独立的未来字节预测头，Mamba-3 SISO 混合器细节及四字节组推理循环。依据项目实现绘制。</desc>
+<defs><marker id="arrow" markerWidth="11" markerHeight="9" refX="9.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4.5 L0,9 Z" fill="#111"/></marker>
+<linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e1f2ff"/><stop offset="1" stop-color="#c8e4ff"/></linearGradient>
+<linearGradient id="green" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e6f5df"/><stop offset="1" stop-color="#cceacb"/></linearGradient>
+<linearGradient id="purple" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eee3f8"/><stop offset="1" stop-color="#decbef"/></linearGradient>
+<linearGradient id="pink" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffedf0"/><stop offset="1" stop-color="#fbcbd5"/></linearGradient>
+<linearGradient id="yellow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6cf"/><stop offset="1" stop-color="#ffe9aa"/></linearGradient>
+<linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e3f9fd"/><stop offset="1" stop-color="#bbe8f3"/></linearGradient></defs>
+<rect width="3400" height="2650" fill="white"/>
+<style>text{font-family:'Noto Sans CJK SC','Noto Sans CJK JP',sans-serif;fill:#111} .math{font-family:'DejaVu Serif','Noto Serif CJK SC',serif} path,line,rect,circle{vector-effect:non-scaling-stroke}</style>
+<text x="1700" y="78" font-size="57" font-weight="750" text-anchor="middle">Mamba-3 短序列模块：4 个位置的整组计算</text>
+<text x="1700" y="145" font-size="35" font-weight="400" text-anchor="middle">共享预处理后，分别计算整组输出特征和本组结束缓存</text>
+<rect x="300" y="220" width="1400" height="123" rx="14" fill="url(#blue)" stroke="#059bff" stroke-width="2.7"/>
+<text x="1000" y="295" font-size="38" font-weight="400" text-anchor="middle" class="math">归一化后的四位置输入 U ∈ ℝ<tspan baseline-shift="super" font-size="75%">4×352</tspan></text>
+<rect x="2200" y="220" width="950" height="123" rx="14" fill="url(#purple)" stroke="#8421cf" stroke-width="2.7"/>
+<text x="2675" y="267" font-size="34" font-weight="650" text-anchor="middle">本组开始缓存</text>
+<text x="2675" y="316" font-size="38" font-weight="400" text-anchor="middle" class="math">𝒮<tspan font-size="75%" dy="9">t−4</tspan><tspan dy="-9"> </tspan></text>
+<rect x="300" y="414" width="1400" height="119" rx="14" fill="url(#yellow)" stroke="#e89d00" stroke-width="2.7"/>
+<text x="1000.0" y="463.0" font-size="39" font-weight="650" text-anchor="middle">整组输入线性投影</text>
+<text x="1000.0" y="506.0" font-size="31" font-weight="400" text-anchor="middle">每位置 352 → 1729：生成内容、门控及状态参数</text>
+<path d="M 1000,343 L 1000,414" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="100" y="588" width="3190" height="1514" rx="23" fill="#fafdf9" stroke="#168d25" stroke-width="2.6" stroke-dasharray="14 10"/>
+<text x="1695" y="578" font-size="33" font-weight="650" text-anchor="middle">整组预处理与短序列核心计算</text>
+<rect x="300" y="650" width="2850" height="165" rx="14" fill="url(#purple)" stroke="#8421cf" stroke-width="2.7"/>
+<text x="1725.0" y="700.5" font-size="41" font-weight="650" text-anchor="middle">共享参数预处理</text>
+<text x="1725.0" y="743.5" font-size="32" font-weight="400" text-anchor="middle">读写参数归一化、旋转角累积、旋转编码与插值预处理</text>
+<text x="1725.0" y="786.5" font-size="30" font-weight="400" text-anchor="middle">计算四位置的累计衰减，保留初始缓存及整组内容、门控参数</text>
+<path d="M 1000,533 L 1000,650" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 2675,343 L 2675,650" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 1695,815 L 1695,900" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M 900,900 L 2510,900" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M 900,900 L 900,970" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 2510,900 L 2510,970" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="1985" y="869" font-size="28" font-weight="400" text-anchor="middle">共享预处理数据</text>
+<rect x="145" y="970" width="1510" height="1090" rx="14" fill="url(#blue)" stroke="#059bff" stroke-width="2.7"/>
+<text x="900" y="1021" font-size="41" font-weight="700" text-anchor="middle">① 整组特征读出</text>
+<text x="900" y="1065" font-size="29" font-weight="400" text-anchor="middle">三个贡献项共同生成四位置输出</text>
+<path d="M 900,1090 L 900,1115" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M 395,1115 L 1405,1115" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M 395,1115 L 395,1170" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 900,1115 L 900,1170" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 1405,1115 L 1405,1170" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="180" y="1170" width="430" height="420" rx="14" fill="url(#cyan)" stroke="#079fc0" stroke-width="2.7"/>
+<text x="395" y="1226" font-size="34" font-weight="700" text-anchor="middle">历史缓存贡献</text>
+<text x="395" y="1310" font-size="29" font-weight="400" text-anchor="middle">读取本组开始状态</text>
+<text x="395" y="1365" font-size="29" font-weight="400" text-anchor="middle">四位置共同读出</text>
+<text x="395" y="1420" font-size="28" font-weight="400" text-anchor="middle">按各自累计衰减加权</text>
+<text x="395" y="1535" font-size="34" font-weight="650" text-anchor="middle">4 × 704</text>
+<rect x="685" y="1170" width="430" height="420" rx="14" fill="url(#green)" stroke="#079a18" stroke-width="2.7"/>
+<text x="900" y="1226" font-size="34" font-weight="700" text-anchor="middle">组内因果贡献</text>
+<rect x="804" y="1277" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="825.5" y="1307" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="852" y="1277" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="873.5" y="1307" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="900" y="1277" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="921.5" y="1307" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="948" y="1277" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="969.5" y="1307" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="804" y="1325" width="43" height="43" rx="5" fill="#b9deb9" stroke="#318337" stroke-width="1.4"/>
+<text x="825.5" y="1355" font-size="24" font-weight="400" text-anchor="middle">●</text>
+<rect x="852" y="1325" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="873.5" y="1355" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="900" y="1325" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="921.5" y="1355" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="948" y="1325" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="969.5" y="1355" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="804" y="1373" width="43" height="43" rx="5" fill="#b9deb9" stroke="#318337" stroke-width="1.4"/>
+<text x="825.5" y="1403" font-size="24" font-weight="400" text-anchor="middle">●</text>
+<rect x="852" y="1373" width="43" height="43" rx="5" fill="#b9deb9" stroke="#318337" stroke-width="1.4"/>
+<text x="873.5" y="1403" font-size="24" font-weight="400" text-anchor="middle">●</text>
+<rect x="900" y="1373" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="921.5" y="1403" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="948" y="1373" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="969.5" y="1403" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<rect x="804" y="1421" width="43" height="43" rx="5" fill="#b9deb9" stroke="#318337" stroke-width="1.4"/>
+<text x="825.5" y="1451" font-size="24" font-weight="400" text-anchor="middle">●</text>
+<rect x="852" y="1421" width="43" height="43" rx="5" fill="#b9deb9" stroke="#318337" stroke-width="1.4"/>
+<text x="873.5" y="1451" font-size="24" font-weight="400" text-anchor="middle">●</text>
+<rect x="900" y="1421" width="43" height="43" rx="5" fill="#b9deb9" stroke="#318337" stroke-width="1.4"/>
+<text x="921.5" y="1451" font-size="24" font-weight="400" text-anchor="middle">●</text>
+<rect x="948" y="1421" width="43" height="43" rx="5" fill="white" stroke="#318337" stroke-width="1.4"/>
+<text x="969.5" y="1451" font-size="24" font-weight="400" text-anchor="middle">0</text>
+<text x="900" y="1505" font-size="25" font-weight="650" text-anchor="middle">因果矩阵 × 四位置内容</text>
+<text x="900" y="1550" font-size="34" font-weight="650" text-anchor="middle">4 × 704</text>
+<rect x="1190" y="1170" width="430" height="420" rx="14" fill="url(#yellow)" stroke="#e89d00" stroke-width="2.7"/>
+<text x="1405" y="1226" font-size="28" font-weight="700" text-anchor="middle">同位置项与直接通路</text>
+<text x="1405" y="1310" font-size="28" font-weight="400" text-anchor="middle">当前位置写入的读出</text>
+<text x="1405" y="1365" font-size="28" font-weight="400" text-anchor="middle">输入内容的直接贡献</text>
+<text x="1405" y="1420" font-size="28" font-weight="400" text-anchor="middle">两项共同补入输出</text>
+<text x="1405" y="1535" font-size="34" font-weight="650" text-anchor="middle">4 × 704</text>
+<path d="M 395,1590 L 395,1640" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M 900,1590 L 900,1640" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M 1405,1590 L 1405,1640" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M 395,1640 L 1405,1640" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M 900,1640 L 900,1678" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<circle cx="900" cy="1702" r="24" fill="white" stroke="#111" stroke-width="2.8"/>
+<path d="M888,1702H912 M900,1690V1714" fill="none" stroke="#111" stroke-width="2.8"/>
+<path d="M 900,1726 L 900,1750" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="280" y="1750" width="1240" height="85" rx="14" fill="url(#cyan)" stroke="#079fc0" stroke-width="2.7"/>
+<text x="900.0" y="1803.5" font-size="35" font-weight="650" text-anchor="middle">完整读出 Y：4 × 704</text>
+<rect x="280" y="1880" width="1240" height="123" rx="14" fill="url(#yellow)" stroke="#e89d00" stroke-width="2.7"/>
+<text x="900.0" y="1931.0" font-size="37" font-weight="650" text-anchor="middle">整组门控</text>
+<text x="900.0" y="1974.0" font-size="31" font-weight="400" text-anchor="middle">乘以投影得到的 SiLU(Z)，保持 4 × 704</text>
+<path d="M 900,1835 L 900,1880" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="1840" y="970" width="1335" height="1090" rx="14" fill="url(#green)" stroke="#079a18" stroke-width="2.7"/>
+<text x="2507" y="1021" font-size="41" font-weight="700" text-anchor="middle">② 最终缓存汇总</text>
+<text x="2507" y="1065" font-size="29" font-weight="400" text-anchor="middle">直接汇总本组结束状态，只写回最终缓存</text>
+<rect x="1880" y="1170" width="1255" height="437" rx="14" fill="url(#pink)" stroke="#ff2455" stroke-width="2.7"/>
+<text x="2507" y="1228" font-size="37" font-weight="700" text-anchor="middle">状态空间状态的整组更新</text>
+<rect x="1920" y="1280" width="485" height="147" rx="14" fill="white" stroke="#171717" stroke-width="2.7"/>
+<text x="2162.5" y="1343.0" font-size="29" font-weight="650" text-anchor="middle">开始状态的衰减贡献</text>
+<text x="2162.5" y="1386.0" font-size="27" font-weight="400" text-anchor="middle">保留历史信息</text>
+<rect x="2605" y="1280" width="485" height="147" rx="14" fill="white" stroke="#171717" stroke-width="2.7"/>
+<text x="2847.5" y="1343.0" font-size="28" font-weight="650" text-anchor="middle">四位置写入的加权汇总</text>
+<text x="2847.5" y="1386.0" font-size="27" font-weight="400" text-anchor="middle">整组矩阵乘法</text>
+<circle cx="2505" cy="1353" r="26" fill="white" stroke="#111" stroke-width="2.8"/>
+<path d="M2493,1353H2517 M2505,1341V1365" fill="none" stroke="#111" stroke-width="2.8"/>
+<path d="M 2405,1353 L 2479,1353" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 2605,1353 L 2531,1353" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 2505,1379 L 2505,1480" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="1960" y="1480" width="1100" height="83" rx="14" fill="white" stroke="#171717" stroke-width="2.7"/>
+<text x="2510.0" y="1532.5" font-size="32" font-weight="650" text-anchor="middle">得到本组结束的状态空间状态</text>
+<rect x="1900" y="1750" width="1230" height="253" rx="14" fill="url(#purple)" stroke="#8421cf" stroke-width="2.7"/>
+<text x="2515.0" y="1823.0" font-size="38" font-weight="650" text-anchor="middle">组合完整结束缓存</text>
+<text x="2515.0" y="1866.0" font-size="31" font-weight="400" text-anchor="middle">状态空间状态 + 本组结束旋转相位</text>
+<text x="2515.0" y="1909.0" font-size="31" font-weight="400" text-anchor="middle">末位置的写入参数与内容（K、V）</text>
+<text x="2515.0" y="1952.0" font-size="27" font-weight="400" text-anchor="middle">相位与末位置信息来自上方整组预处理</text>
+<path d="M 2507,1607 L 2507,1750" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="280" y="2190" width="1240" height="112" rx="14" fill="url(#purple)" stroke="#8421cf" stroke-width="2.7"/>
+<text x="900.0" y="2235.5" font-size="38" font-weight="650" text-anchor="middle">整组输出线性投影</text>
+<text x="900.0" y="2278.5" font-size="33" font-weight="400" text-anchor="middle">每位置 704 → 352</text>
+<path d="M 900,2003 L 900,2190" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="280" y="2390" width="1240" height="122" rx="14" fill="url(#blue)" stroke="#059bff" stroke-width="2.7"/>
+<text x="900" y="2466" font-size="39" font-weight="400" text-anchor="middle" class="math">四位置输出特征 M ∈ ℝ<tspan baseline-shift="super" font-size="75%">4×352</tspan></text>
+<path d="M 900,2302 L 900,2390" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="1900" y="2390" width="1230" height="122" rx="14" fill="url(#purple)" stroke="#8421cf" stroke-width="2.7"/>
+<text x="2515" y="2438" font-size="33" font-weight="650" text-anchor="middle">本组结束缓存，供下一组使用</text>
+<text x="2515" y="2484" font-size="39" font-weight="400" text-anchor="middle" class="math">𝒮<tspan font-size="75%" dy="9">t</tspan><tspan dy="-9"> </tspan></text>
+<path d="M 2515,2003 L 2515,2390" fill="none" stroke="#111" stroke-width="2.8" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="2700" y="2223" font-size="30" font-weight="650" text-anchor="middle">写回一次</text>
+<text x="1700" y="2583" font-size="29" font-weight="400" text-anchor="middle">因果矩阵中的 0 屏蔽当前位置及未来位置；同位置贡献在第三项中单独计算。图中省略批次与内部通道头维度。</text>
+</svg>

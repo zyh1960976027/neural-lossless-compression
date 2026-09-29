@@ -38,6 +38,13 @@ FORMAL_MAMBA3_CONFIG = {
     "name": MODEL_NAME,
 }
 
+MTP4_MAMBA3_CONFIG = {
+    **BASELINE_MAMBA3_CONFIG,
+    "name": "mamba3_siso_3m_mtp4",
+    "prediction_heads": 4,
+    "expected_total_trainable_params": 3_725_772,
+}
+
 SUPPORTED_MAMBA3_CONFIGS = {
     config["name"]: config
     for config in (BASELINE_MAMBA3_CONFIG, FORMAL_MAMBA3_CONFIG)
@@ -119,6 +126,31 @@ class Mamba3ByteLM(nn.Module):
         return self.lm_head(self.final_norm(x)).float()
 
 
+class Mamba3ByteMTP4(Mamba3ByteLM):
+    """Four independent byte predictions from each shared causal hidden state."""
+
+    def __init__(self, vocab_size, model_config):
+        if int(model_config.get("prediction_heads", 0)) != 4:
+            raise ValueError("MTP-4 requires four prediction heads.")
+        super().__init__(vocab_size, model_config)
+        d_model = int(model_config["d_model"])
+        self.future_heads = nn.ModuleList(
+            nn.Linear(d_model, vocab_size, bias=False) for _ in range(3)
+        )
+        for head in self.future_heads:
+            nn.init.zeros_(head.weight)
+
+    def forward(self, token_ids):
+        x = self.embedding(token_ids)
+        for block in self.blocks:
+            x = block(x)
+        hidden = self.final_norm(x)
+        return torch.stack(
+            [self.lm_head(hidden), *(head(hidden) for head in self.future_heads)],
+            dim=-2,
+        ).float()
+
+
 def analytic_parameter_counts(model_config, vocab_size=VOCAB_SIZE):
     if model_config.get("family") != "mamba3_siso":
         raise ValueError("Only the Mamba-3 SISO model family is supported.")
@@ -150,7 +182,10 @@ def analytic_parameter_counts(model_config, vocab_size=VOCAB_SIZE):
     swiglu = 3 * d_model * int(model_config["ffn_hidden"])
     block = mixer + swiglu + 2 * d_model
     backbone = n_layer * block + d_model
-    total = backbone + 2 * int(vocab_size) * d_model
+    prediction_heads = int(model_config.get("prediction_heads", 1))
+    if prediction_heads <= 0:
+        raise ValueError("prediction_heads must be positive.")
+    total = backbone + (1 + prediction_heads) * int(vocab_size) * d_model
     return {
         "backbone_trainable_params": backbone,
         "total_trainable_params": total,
@@ -164,6 +199,7 @@ def parameter_counts(model):
         if parameter.requires_grad
         and not name.startswith("embedding.")
         and not name.startswith("lm_head.")
+        and not name.startswith("future_heads.")
     )
     total = sum(
         parameter.numel()
@@ -246,6 +282,79 @@ def autoregressive_macs(model_config, *, block_size=2048, predicted_bytes=None,
     return result
 
 
+def mtp4_sequence_macs(model_config, *, state_tokens, prediction_groups,
+                       input_bytes=None, vocab_size=VOCAB_SIZE):
+    """Return analytic MACs for fused MTP-4 continuation coding.
+
+    Backbone MACs are charged for every real byte consumed by a length-1 or
+    length-4 continuation. All four output heads are charged once per active
+    prediction group. Padding in the final batch and elementwise operations are
+    excluded, matching :func:`autoregressive_macs`.
+    """
+    if model_config.get("family") != "mamba3_siso":
+        raise ValueError("Only the Mamba-3 SISO model family is supported.")
+    if bool(model_config.get("is_mimo")) or int(model_config.get("n_groups", 1)) != 1:
+        raise ValueError("The analytic MTP-4 MAC count requires rank-one SISO updates.")
+    state_tokens = int(state_tokens)
+    prediction_groups = int(prediction_groups)
+    if state_tokens < 0 or prediction_groups < 0:
+        raise ValueError("state_tokens and prediction_groups must be nonnegative.")
+    if input_bytes is not None:
+        input_bytes = int(input_bytes)
+        if input_bytes < 0:
+            raise ValueError("input_bytes must be nonnegative.")
+
+    d_model = int(model_config["d_model"])
+    n_layer = int(model_config["n_layer"])
+    d_inner = int(model_config["expand"]) * d_model
+    d_state = int(model_config["d_state"])
+    head_dim = int(model_config["head_dim"])
+    if d_inner % head_dim:
+        raise ValueError("Mamba-3 d_inner must be divisible by head_dim.")
+    n_heads = d_inner // head_dim
+    rope_width = int(d_state * float(model_config["rope_fraction"]))
+    rope_width -= rope_width % 2
+    rope_angles = rope_width // 2
+    d_in_proj = 2 * d_inner + 2 * d_state + 3 * n_heads + rope_angles
+    dense_per_layer = (
+        d_model * d_in_proj
+        + d_inner * d_model
+        + 3 * d_model * int(model_config["ffn_hidden"])
+    )
+    state_per_layer = 4 * n_heads * head_dim * d_state
+    backbone_per_state_token = n_layer * (dense_per_layer + state_per_layer)
+    output_heads = int(model_config.get("prediction_heads", 1))
+    if output_heads != 4:
+        raise ValueError("MTP-4 MAC counting requires exactly four prediction heads.")
+    heads_per_prediction_group = output_heads * d_model * int(vocab_size)
+    backbone_macs = state_tokens * backbone_per_state_token
+    prediction_head_macs = prediction_groups * heads_per_prediction_group
+    total_macs = backbone_macs + prediction_head_macs
+    result = {
+        "method": "analytic_mtp4_sequence_v1",
+        "mac_definition": "one multiply-accumulate",
+        "excluded_operations": [
+            "embedding lookup", "normalization", "activation", "rotation",
+            "exponentiation", "softmax", "probability quantization", "range coding",
+            "inactive final-batch padding",
+        ],
+        "state_tokens": state_tokens,
+        "prediction_groups": prediction_groups,
+        "backbone_macs_per_state_token": backbone_per_state_token,
+        "prediction_head_macs_per_group": heads_per_prediction_group,
+        "backbone_macs": backbone_macs,
+        "prediction_head_macs": prediction_head_macs,
+        "total_macs": total_macs,
+        "total_pmacs": total_macs / 1_000_000_000_000_000.0,
+    }
+    if input_bytes is not None:
+        result.update(
+            input_bytes=input_bytes,
+            macs_per_input_byte=(total_macs / input_bytes if input_bytes else None),
+        )
+    return result
+
+
 def build_mamba3_byte_model(
     model_config=None,
     vocab_size=VOCAB_SIZE,
@@ -275,5 +384,22 @@ def build_mamba3_byte_model(
             raise AssertionError(
                 f"Parameter-count mismatch: actual={actual}, "
                 f"analytic={analytic}, expected={expected}."
+            )
+    return model
+
+
+def build_mamba3_mtp4_model(verify_counts=True):
+    model = Mamba3ByteMTP4(VOCAB_SIZE, MTP4_MAMBA3_CONFIG)
+    if verify_counts:
+        actual = parameter_counts(model)
+        analytic = analytic_parameter_counts(MTP4_MAMBA3_CONFIG)
+        expected = {
+            "backbone_trainable_params": MTP4_MAMBA3_CONFIG["expected_backbone_params"],
+            "total_trainable_params": MTP4_MAMBA3_CONFIG["expected_total_trainable_params"],
+        }
+        if actual != analytic or actual != expected:
+            raise AssertionError(
+                f"MTP-4 parameter-count mismatch: actual={actual}, "
+                f"analytic={analytic}, expected={expected}"
             )
     return model

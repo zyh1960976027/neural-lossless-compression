@@ -162,3 +162,150 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
         return dict(graph_enabled=self.use_graph, graph_prepare_seconds=self.graph_prepare_seconds,
                     graph_cache_hits=self.graph_cache_hits, graph_capture_count=self.graph_capture_count,
                     graph_cached_batch_sizes=list(self._contexts))
+
+
+class MTP4GraphPredictor(c.MTP4BatchedPredictor):
+    """MTP-4 continuation with stable buffers and one graph per input length."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._contexts = OrderedDict()
+        self.graph_prepare_seconds = 0.0
+        self.graph_cache_hits = 0
+        self.graph_capture_count = 0
+
+    def _clear_states(self):
+        for states in self.states:
+            for state in states:
+                state.zero_()
+        self.state_tokens_in_block = 0
+
+    def _graph_compute(self, length):
+        return super()._compute(
+            self._tokens[:, :length], None, check_finite=False
+        )
+
+    @torch.inference_mode()
+    def reset(self, batch_size=None):
+        size = (
+            batch_size
+            if batch_size is not None
+            else self.active_batch_size or self.batch_size
+        )
+        c.validate_batch_size(size)
+        if size > self.batch_size:
+            raise ValueError("Active batch exceeds the configured batch_size.")
+        if size in self._contexts:
+            self.graph_cache_hits += 1
+            context = self._contexts.pop(size)
+            self._contexts[size] = context
+            self.__dict__.update(context)
+            self._clear_states()
+            return
+        if len(self._contexts) == 2:
+            self._contexts.popitem(last=False)
+
+        # Each graph retains tensor addresses, so every batch shape owns states,
+        # token/probability buffers and both length-specific graphs.
+        self.active_batch_size = 0
+        super().reset(size)
+        started = time.perf_counter()
+        with c._coding_mode(self), torch.cuda.device(self.device):
+            stream = torch.cuda.Stream(device=self.device)
+            stream.wait_stream(torch.cuda.current_stream(self.device))
+            with torch.cuda.stream(stream):
+                self._tokens.zero_()
+                for _ in range(3):
+                    self._graph_compute(1)
+                    self._clear_states()
+                    self._graph_compute(4)
+                    self._clear_states()
+            torch.cuda.current_stream(self.device).wait_stream(stream)
+            self.synchronize()
+
+            self._clear_states()
+            self._start_graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(self._start_graph, stream=stream):
+                self._start_probabilities = self._graph_compute(1)
+            self.synchronize()
+
+            self._clear_states()
+            self._advance_graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(self._advance_graph, stream=stream):
+                self._advance_probabilities = self._graph_compute(4)
+            self.synchronize()
+            self._clear_states()
+
+        self.graph_prepare_seconds += time.perf_counter() - started
+        self.graph_capture_count += 2
+        keys = (
+            "active_batch_size", "states", "_tokens", "_host_tokens",
+            "_host_probabilities", "_start_graph", "_start_probabilities",
+            "_advance_graph", "_advance_probabilities",
+        )
+        self._contexts[size] = {key: getattr(self, key) for key in keys}
+
+    def _copy_graph_probabilities(self, probabilities, active):
+        self._host_probabilities.copy_(probabilities, non_blocking=False)
+        result = self._host_probabilities.numpy()
+        checked = result if active is None else result[active]
+        if not np.isfinite(checked).all():
+            raise FloatingPointError("The MTP-4 graph produced non-finite probabilities.")
+        return result
+
+    @torch.inference_mode()
+    def start(self, seed_tokens, *, active=None):
+        seed_tokens = np.asarray(seed_tokens)
+        if (
+            not self.active_batch_size
+            or seed_tokens.shape != (self.active_batch_size,)
+            or not np.issubdtype(seed_tokens.dtype, np.integer)
+            or np.any(seed_tokens < 0)
+            or np.any(seed_tokens > 255)
+        ):
+            raise ValueError("reset(B) then supply B seed byte values in 0..255.")
+        if self.state_tokens_in_block != 0:
+            raise ValueError("start() may only be called once after reset().")
+        active = self._validate_active(active)
+        self._host_tokens[:, 0].numpy()[:] = seed_tokens
+        self._tokens[:, 0].copy_(self._host_tokens[:, 0], non_blocking=True)
+        self._start_graph.replay()
+        result = self._copy_graph_probabilities(
+            self._start_probabilities, active
+        )
+        self.state_tokens_in_block = 1
+        return result
+
+    @torch.inference_mode()
+    def advance(self, tokens, *, active=None):
+        tokens = np.asarray(tokens)
+        if (
+            not self.active_batch_size
+            or tokens.shape != (self.active_batch_size, 4)
+            or not np.issubdtype(tokens.dtype, np.integer)
+            or np.any(tokens < 0)
+            or np.any(tokens > 255)
+        ):
+            raise ValueError("advance() requires B groups of four byte values.")
+        if self.state_tokens_in_block == 0:
+            raise ValueError("start() must precede advance().")
+        if self.state_tokens_in_block + 4 > c.BLOCK_SIZE:
+            raise ValueError("MTP continuation exceeds the 2048-byte block.")
+        active = self._validate_active(active)
+        self._host_tokens.numpy()[:] = tokens
+        self._tokens.copy_(self._host_tokens, non_blocking=True)
+        self._advance_graph.replay()
+        result = self._copy_graph_probabilities(
+            self._advance_probabilities, active
+        )
+        self.state_tokens_in_block += 4
+        return result
+
+    def execution_metrics(self):
+        return {
+            "graph_enabled": True,
+            "graph_prepare_seconds": self.graph_prepare_seconds,
+            "graph_cache_hits": self.graph_cache_hits,
+            "graph_capture_count": self.graph_capture_count,
+            "graph_cached_batch_sizes": list(self._contexts),
+        }

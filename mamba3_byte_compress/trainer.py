@@ -1,6 +1,7 @@
 """Minimal training and checkpoint flow for the frozen byte baseline."""
 
 import hashlib
+import io
 import json
 import math
 import os
@@ -274,6 +275,15 @@ def _data_fingerprint(train_file, validation_file, train_starts_file):
     return fingerprint
 
 
+def _npy_prefix_fingerprint(path, count):
+    """Fingerprint a prefix using the same on-disk representation as np.save."""
+    starts = np.load(path, mmap_mode="r", allow_pickle=False)
+    buffer = io.BytesIO()
+    np.save(buffer, np.asarray(starts[:count], dtype=np.int64), allow_pickle=False)
+    payload = buffer.getvalue()
+    return {"size": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+
+
 class ByteTrainer:
     def __init__(
         self,
@@ -288,6 +298,7 @@ class ByteTrainer:
         model_name=MODEL_NAME,
         model_config=None,
         num_workers=0,
+        allow_training_extension=False,
     ):
         self.model = model
         self.model_name = model_name
@@ -302,6 +313,8 @@ class ByteTrainer:
         self.run_dir.mkdir(parents=True, exist_ok=True)
         self.device = torch.device(device)
         self.num_workers = int(num_workers)
+        self.allow_training_extension = bool(allow_training_extension)
+        self.training_extension = None
 
         self.global_batch_size = int(self.config["global_batch_size"])
         self.micro_batch_size = int(self.config["micro_batch_size"])
@@ -364,7 +377,7 @@ class ByteTrainer:
         return self.run_dir / "checkpoints" / "best.pt"
 
     def _checkpoint(self, kind, validation_metrics=None):
-        return {
+        checkpoint = {
             "schema_version": 1,
             "checkpoint_kind": kind,
             "model_name": self.model_name,
@@ -387,6 +400,9 @@ class ByteTrainer:
             "rng_state": capture_rng_state(),
             "parameter_counts": parameter_counts(self.model),
         }
+        if self.training_extension is not None:
+            checkpoint["training_extension"] = self.training_extension
+        return checkpoint
 
     def save_checkpoint(self, kind, validation_metrics=None):
         if kind not in {"best", "latest"}:
@@ -402,15 +418,62 @@ class ByteTrainer:
             ("model_name", self.model_name),
             ("model_config", self.model_config),
             ("phase", "formal"),
-            ("training_config", self.config),
-            ("data_fingerprint", self.data_fingerprint),
             ("micro_batch_size", self.micro_batch_size),
             ("accumulation_steps", self.accumulation_steps),
         ):
             if checkpoint.get(key) != expected:
                 raise ValueError(f"Checkpoint {key} does not match the requested run.")
+        checkpoint_config = checkpoint.get("training_config")
+        checkpoint_fingerprint = checkpoint.get("data_fingerprint")
+        extending = checkpoint_config != self.config
+        if extending:
+            old_config = dict(checkpoint_config or {})
+            new_config = dict(self.config)
+            old_total = old_config.pop("total_updates", None)
+            new_total = new_config.pop("total_updates", None)
+            if (
+                not self.allow_training_extension
+                or old_config != new_config
+                or not isinstance(old_total, int)
+                or new_total <= old_total
+                or int(checkpoint.get("global_update", -1)) > old_total
+            ):
+                raise ValueError(
+                    "Checkpoint training_config does not match the requested run."
+                )
+            for name in ("train", "validation"):
+                if checkpoint_fingerprint.get(name) != self.data_fingerprint.get(name):
+                    raise ValueError(
+                        f"Checkpoint data_fingerprint for {name} does not match."
+                    )
+            old_windows = checkpoint_fingerprint.get("training_windows")
+            old_window_count = old_total * int(checkpoint_config["global_batch_size"])
+            if (
+                old_window_count <= 0
+                or _npy_prefix_fingerprint(self.train_starts_file, old_window_count)
+                != old_windows
+            ):
+                raise ValueError(
+                    "Extended training windows do not preserve the checkpoint prefix."
+                )
+            self.training_extension = {
+                "from_total_updates": old_total,
+                "to_total_updates": new_total,
+                "scheduler_policy": "preserve_original_then_hold_minimum_lr",
+                "original_scheduler_total_updates": int(
+                    checkpoint["scheduler"]["total_updates"]
+                ),
+            }
+        elif checkpoint_fingerprint != self.data_fingerprint:
+            raise ValueError(
+                "Checkpoint data_fingerprint does not match the requested run."
+            )
+        elif checkpoint.get("training_extension") is not None:
+            self.training_extension = dict(checkpoint["training_extension"])
         self.model.load_state_dict(checkpoint["model"], strict=True)
         self.optimizer.load_state_dict(checkpoint["optimizer"])
+        if self.allow_training_extension:
+            self.scheduler.total_updates = int(checkpoint["scheduler"]["total_updates"])
         self.scheduler.load_state_dict(checkpoint["scheduler"])
         self.global_update = int(checkpoint["global_update"])
         self.tokens_seen = int(checkpoint["tokens_seen"])
@@ -507,6 +570,14 @@ class ByteTrainer:
         self.training_metrics.append(record)
         self._write_experiment_data()
 
+    def _batch_loss(self, logits, targets):
+        loss = F.cross_entropy(
+            logits.reshape(-1, logits.shape[-1]).float(),
+            targets.reshape(-1),
+            reduction="mean",
+        )
+        return loss, {}
+
     def train(self):
         if self.global_update >= self.total_updates:
             raise ValueError("Checkpoint has already reached the requested update budget.")
@@ -519,23 +590,25 @@ class ByteTrainer:
             learning_rate = self.scheduler.step(self.global_update)
             self.optimizer.zero_grad(set_to_none=True)
             update_nll = 0.0
+            update_components = {}
             for _ in range(self.accumulation_steps):
                 batch = next(loader_iterator)
                 inputs = batch["input_tokens"].to(self.device, non_blocking=True)
                 targets = batch["target_tokens"].to(self.device, non_blocking=True)
                 with autocast_context(self.device, enabled=True):
                     logits = self.model(inputs)
-                loss = F.cross_entropy(
-                    logits.reshape(-1, logits.shape[-1]).float(),
-                    targets.reshape(-1),
-                    reduction="mean",
-                )
+                loss, components = self._batch_loss(logits, targets)
                 if not torch.isfinite(loss):
                     raise FloatingPointError(
                         f"Non-finite training loss at update {self.global_update}."
                     )
                 (loss / self.accumulation_steps).backward()
                 update_nll += float(loss.detach()) / self.accumulation_steps
+                for name, value in components.items():
+                    update_components[name] = (
+                        update_components.get(name, 0.0)
+                        + float(value.detach()) / self.accumulation_steps
+                    )
 
             gradient_norm = torch.nn.utils.clip_grad_norm_(
                 self.model.parameters(), float(self.config["max_grad_norm"])
@@ -559,6 +632,7 @@ class ByteTrainer:
                     "learning_rate": learning_rate,
                     "gradient_norm": float(gradient_norm),
                 }
+                record.update(update_components)
                 self._write_log(record)
                 print(json.dumps(record, sort_keys=True), flush=True)
 
