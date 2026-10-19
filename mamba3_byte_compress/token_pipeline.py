@@ -93,6 +93,13 @@ def run_job(args, directory, job):
     return result
 
 
+def is_cuda_out_of_memory(error):
+    import torch
+    return (isinstance(error, torch.cuda.OutOfMemoryError)
+            or isinstance(error, RuntimeError)
+            and str(error).strip().lower().startswith("triton error [cuda]: out of memory"))
+
+
 def worker(args):
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     job = load_json(args.job)
@@ -110,8 +117,11 @@ def worker(args):
         from .token_training import probe_batch
         try:
             result = probe_batch(job["directory"], job["batch_size"], job["device"], job["workers"])
-        except torch.cuda.OutOfMemoryError:
-            result = dict(safe=False, oom=True, batch_size=job["batch_size"], workers=job["workers"])
+        except RuntimeError as error:
+            if not is_cuda_out_of_memory(error):
+                raise
+            result = dict(safe=False, oom=True, error=str(error),
+                          batch_size=job["batch_size"], workers=job["workers"])
     elif job["kind"] == "codec":
         from . import codec as c
         from . import token_codec as tc
