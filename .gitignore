@@ -15,6 +15,7 @@ runs/
 /experiments/train/*
 !/experiments/train/.gitkeep
 logs/
+/experiments/tokenizers/
 *.log
 *.pt
 *.pth

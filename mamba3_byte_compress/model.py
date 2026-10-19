@@ -277,3 +277,17 @@ def build_mamba3_byte_model(
                 f"analytic={analytic}, expected={expected}."
             )
     return model
+
+
+def build_mamba3_token_model(vocab_size=4096):
+    """Two-layer experimental model; the frozen byte builder remains unchanged."""
+    if not 2 <= int(vocab_size) <= 65535:
+        raise ValueError("Token vocabulary must fit uint16")
+    config = dict(BASELINE_MAMBA3_CONFIG)
+    config.update(name=f"mamba3_siso_2l_v{vocab_size}", vocab_size=int(vocab_size))
+    counts = analytic_parameter_counts(config, vocab_size)
+    config["expected_total_trainable_params"] = counts["total_trainable_params"]
+    model = Mamba3ByteLM(vocab_size, config)
+    if parameter_counts(model) != counts:
+        raise AssertionError("Token model parameter count mismatch")
+    return model, config

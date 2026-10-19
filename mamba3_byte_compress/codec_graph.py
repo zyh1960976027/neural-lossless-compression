@@ -141,8 +141,8 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
         tokens = np.asarray(tokens)
         if (not self.active_batch_size or tokens.shape != (self.active_batch_size,)
                 or not np.issubdtype(tokens.dtype, np.integer)
-                or np.any(tokens < 0) or np.any(tokens > 255)):
-            raise ValueError("reset(B) then supply B byte values in 0..255.")
+                or np.any(tokens < 0) or np.any(tokens >= self.vocab_size)):
+            raise ValueError("reset(B) then supply B valid token IDs.")
         if self.steps_in_block >= c.BLOCK_SIZE - 1:
             raise ValueError("An independent block allows 2047 predictions; reset the batch.")
         if active is not None and np.asarray(active, dtype=bool).shape != tokens.shape:

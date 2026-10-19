@@ -167,6 +167,7 @@ class PrefixPredictor:
         self.model = model.to(self.device).eval()
         self.checkpoint_sha256 = checkpoint_sha256
         self.runtime = _runtime(self.device)
+        self.vocab_size = int(getattr(getattr(model, "embedding", None), "num_embeddings", 256))
 
     @torch.inference_mode()
     def __call__(self, history):
@@ -306,8 +307,8 @@ class BatchedStepPredictor(PrefixPredictor):
         tokens = np.asarray(tokens)
         if (not self.active_batch_size or tokens.shape != (self.active_batch_size,)
                 or not np.issubdtype(tokens.dtype, np.integer)
-                or np.any(tokens < 0) or np.any(tokens > 255)):
-            raise ValueError("reset(B) then supply B byte values in 0..255.")
+                or np.any(tokens < 0) or np.any(tokens >= self.vocab_size)):
+            raise ValueError("reset(B) then supply B valid token IDs.")
         if self.steps_in_block >= BLOCK_SIZE - 1:
             raise ValueError("An independent block allows 2047 predictions; reset the batch.")
         if active is not None:
@@ -323,8 +324,8 @@ class BatchedStepPredictor(PrefixPredictor):
                 x = x + mixed
                 x = x + block.mlp(block.norm2(x))
             logits = self.model.lm_head(self.model.final_norm(x)).float()
-        if logits.shape != (self.active_batch_size, 256):
-            raise ValueError("The batched model must output [B, 256] logits.")
+        if logits.shape != (self.active_batch_size, self.vocab_size):
+            raise ValueError("The batched model must output [B, vocab_size] logits.")
         last = logits.detach().to(device="cpu", dtype=torch.float64)
         checked = last if active is None else last[torch.from_numpy(active)]
         if not torch.isfinite(checked).all():
@@ -348,7 +349,7 @@ class BatchedStepV4Predictor(BatchedStepPredictor):
         super().reset(batch_size)
         if self.active_batch_size != previous:
             self._host_probabilities = torch.empty(
-                (self.active_batch_size, 256), dtype=torch.float32,
+                (self.active_batch_size, self.vocab_size), dtype=torch.float32,
                 pin_memory=self.device.type == "cuda")
 
     def _compute(self):
@@ -359,8 +360,8 @@ class BatchedStepV4Predictor(BatchedStepPredictor):
                 x = x + mixed
                 x = x + block.mlp(block.norm2(x))
             logits = self.model.lm_head(self.model.final_norm(x)).float()
-        if logits.shape != (self.active_batch_size, 256):
-            raise ValueError("The batched model must output [B, 256] logits.")
+        if logits.shape != (self.active_batch_size, self.vocab_size):
+            raise ValueError("The batched model must output [B, vocab_size] logits.")
         return logits.softmax(dim=-1)
 
     @torch.inference_mode()
@@ -368,8 +369,8 @@ class BatchedStepV4Predictor(BatchedStepPredictor):
         tokens = np.asarray(tokens)
         if (not self.active_batch_size or tokens.shape != (self.active_batch_size,)
                 or not np.issubdtype(tokens.dtype, np.integer)
-                or np.any(tokens < 0) or np.any(tokens > 255)):
-            raise ValueError("reset(B) then supply B byte values in 0..255.")
+                or np.any(tokens < 0) or np.any(tokens >= self.vocab_size)):
+            raise ValueError("reset(B) then supply B valid token IDs.")
         if self.steps_in_block >= BLOCK_SIZE - 1:
             raise ValueError("An independent block allows 2047 predictions; reset the batch.")
         if active is not None:
