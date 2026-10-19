@@ -357,6 +357,12 @@ def evaluate(args):
 
 def report(args):
     rows = []
+    training_records = {}
+    evaluations = {}
+    for algorithm in ALGORITHMS:
+        path = args.run_dir / algorithm / "training/summary.json"
+        if path.exists():
+            training_records[algorithm] = load_json(path)
     for algorithm in ("byte", *ALGORITHMS):
         for split in ("test", "full"):
             path = args.run_dir / "evaluation" / algorithm / split / "roundtrip.json"
@@ -366,15 +372,20 @@ def report(args):
             if "including_weights_bpb" not in result:
                 continue
             enc, dec = result["encode"], result["decode"]
+            evaluations[f"{algorithm}/{split}"] = result
             row = dict(algorithm=algorithm, split=split, original_bytes=enc["num_bytes"],
                        actual_bpb=enc["actual_bpb"], including_weights_bpb=result["including_weights_bpb"],
                        encode_kb_per_second=enc["encode_kb_per_second"], decode_kb_per_second=dec["decode_kb_per_second"],
                        compressed_bytes=enc["compressed_bytes"], inference_package_bytes=result["inference_package_bytes"],
                        verified=result["verified"], checkpoint_sha256=result["checkpoint_sha256"],
-                       raw_sha256=result["raw_sha256"], total_params=3455436 if algorithm == "byte" else 6158796)
+                       raw_sha256=result["raw_sha256"], backbone_params=3275212,
+                       total_params=3455436 if algorithm == "byte" else 6158796,
+                       training_source="historical_checkpoint" if algorithm == "byte" else "trained_from_scratch")
             if algorithm != "byte":
                 training_summary = load_json(args.run_dir / algorithm / "training/summary.json")
                 row.update(training_epochs=training_summary["epoch"], training_seconds=training_summary["elapsed_seconds"],
+                           training_predicted_tokens=training_summary["predicted_tokens_seen"],
+                           training_stop_reason=training_summary["stop_reason"],
                            best_validation_bpb=training_summary["best_bpb"], converged=training_summary["converged"])
             rows.append(row)
     if rows:
@@ -388,8 +399,11 @@ def report(args):
                       actual_bpb=1.337071088, encode_kb_per_second=361.7320167044504,
                       decode_kb_per_second=371.8051155889493,
                       source="experiments/test/20260916_160926_enwik9_full/summary.csv")
+    stages = {name: load_json(args.run_dir / f"{name}.json") for name in ("prepared", "preflight", "tuning")
+              if (args.run_dir / f"{name}.json").exists()}
     save_json(args.run_dir / "results.json", dict(complete=complete, results=rows, historical=historical,
-                                                manifest=require_manifest(args), git=git_info()))
+              training=training_records, evaluations=evaluations, stages=stages,
+              manifest=require_manifest(args), git=git_info(), code_sha256=code_fingerprint()))
     lines = ["# 三种表示方式的无损压缩实验", "", "主测试为独立的后 890 MB；完整 1 GB 仅作历史可比性补充。",
              "实际 BPB 包含分词器和整个压缩文件；含权重 BPB 再加入独立推理包。速度包含分词及文件读写，单位为 KB/s。",
              "", "| 范围 | 表示 | 实际 BPB | 含权重 BPB | 编码 KB/s | 解码 KB/s | 无损校验 |",
@@ -399,6 +413,14 @@ def report(args):
                      f"{row['encode_kb_per_second']:.2f} | {row['decode_kb_per_second']:.2f} | 通过 |")
     lines += ["", "历史完整 1 GB 字节结果：BPB 1.337071088，编码 361.73 KB/s，解码 371.81 KB/s。",
               "字节组复用历史权重；两种子词模型按验证集早停。原始记录、训练曲线和校验信息保存在各模型目录。",
+              "三组骨干均为 3,275,212 个参数；字节组总参数为 3,455,436，子词组分别为 6,158,796。",
+              "验证 BPB 用于判断收敛；实际 BPB 来自完整压缩文件，两者口径不同。"]
+    for algorithm, record in training_records.items():
+        lines += ["", f"{algorithm}：完成 {record['epoch']} 轮，累计训练 {record['predicted_tokens_seen']:,} 个条件预测位置，"
+                  f"用时 {record['elapsed_seconds']/3600:.2f} 小时，最佳验证 BPB {record['best_bpb']}；"
+                  f"训练 batch {record['batch_size']}，停止原因 {record['stop_reason']}。",
+                  f"[验证曲线]({algorithm}/training/bpb_vs_steps.png) · [完整训练记录]({algorithm}/training/history.json)"]
+    lines += ["", "完整 JSON 保存预检耗时、环境、权重指纹及逐字节比较和 SHA256 证明。",
               "", "状态：" + ("全部完成。" if complete else "实验尚未全部完成；缺失结果不会用估算值填充。")]
     (args.run_dir / "report.md").write_text("\n".join(lines) + "\n")
     return complete
