@@ -147,14 +147,28 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
             raise ValueError("An independent block allows 2047 predictions; reset the batch.")
         if active is not None and np.asarray(active, dtype=bool).shape != tokens.shape:
             raise ValueError("Active mask must match the batch shape.")
+        timing = getattr(self, "profile_timings", None)
+        if timing is not None:
+            self.synchronize()
+            started = time.perf_counter()
         self._host_token.numpy()[:] = tokens
         self._token.copy_(self._host_token, non_blocking=True)
+        if timing is not None:
+            self.synchronize()
+            timing["upload"] += time.perf_counter() - started
+            started = time.perf_counter()
         if self.use_graph:
             self._graph.replay()
             probabilities = self._probabilities
         else:
             probabilities = self._compute()
+        if timing is not None:
+            self.synchronize()
+            timing["model_probability"] += time.perf_counter() - started
+            started = time.perf_counter()
         self._host_probabilities.copy_(probabilities, non_blocking=False)
+        if timing is not None:
+            timing["download"] += time.perf_counter() - started
         self.steps_in_block += 1
         return self._host_probabilities.numpy(), None
 

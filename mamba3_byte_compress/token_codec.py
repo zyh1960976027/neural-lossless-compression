@@ -26,6 +26,7 @@ MAX_HEADER = 8 * 1024 * 1024
 
 
 def load_token_predictor(checkpoint, device="cuda:0", batch_size=1024, use_graph=True):
+    from importlib.metadata import version
     from .model import build_mamba3_token_model
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     state = torch.load(checkpoint, map_location="cpu", weights_only=False)
@@ -36,6 +37,8 @@ def load_token_predictor(checkpoint, device="cuda:0", batch_size=1024, use_graph
     predictor = BatchedStepV5Predictor(model, device, c.sha256_file(checkpoint),
                                       batch_size=batch_size, use_graph=use_graph)
     predictor.tokenizer_sha256 = state["tokenizer_sha256"]
+    predictor.runtime.update(sentencepiece=version("sentencepiece"), protobuf=version("protobuf"),
+                             token_adapter_version=1)
     return predictor
 
 

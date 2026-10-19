@@ -1,3 +1,4 @@
 # Additional dependency; use the existing project Mamba-3/PyTorch environment.
 constriction==0.4.2
 sentencepiece==0.2.1
+protobuf==6.33.6
