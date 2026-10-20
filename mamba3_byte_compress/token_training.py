@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, Dataset, Subset
 
 from .metrics import autocast_context
 from .model import build_mamba3_token_model, parameter_counts
-from .tokenization import digest_file, load_json, save_json
+from .tokenization import LosslessTokenizer, digest_file, load_json, save_json
 from .trainer import (capture_rng_state, restore_rng_state, seed_everything,
                       _atomic_torch_save, _plot_bpb_history)
 
@@ -125,38 +125,57 @@ def optimizer_for(model):
                             betas=TRAINING["betas"], eps=TRAINING["eps"], weight_decay=0.)
 
 
-def probe_batch(directory, batch_size, device, workers=0):
+def accumulated_update(model, optimizer, batch, micro_batch_size, device):
+    """One optimizer update, normalized by all valid targets including a tail."""
+    values, targets, masks = batch
+    if micro_batch_size < 1:
+        raise ValueError("micro_batch_size must be positive")
+    valid_count = int(masks.sum())
+    optimizer.zero_grad(set_to_none=True)
+    if not valid_count:
+        return 0., 0
+    total_nll = torch.zeros((), device=device)
+    for start in range(0, len(values), micro_batch_size):
+        stop = start + micro_batch_size
+        x, y, mask = [v[start:stop].to(device, non_blocking=True) for v in batch]
+        if not bool(mask.any()):
+            continue
+        with autocast_context(device):
+            logits = model(x)
+        nll, _ = block_loss(logits, y, mask)
+        loss = nll / valid_count
+        if not torch.isfinite(loss):
+            raise FloatingPointError("Non-finite training loss")
+        loss.backward()
+        total_nll += nll.detach()
+        del logits, nll, loss
+    grad = torch.nn.utils.clip_grad_norm_(model.parameters(), TRAINING["max_grad_norm"])
+    if not torch.isfinite(grad):
+        raise FloatingPointError("Non-finite training gradient")
+    optimizer.step()
+    return float(total_nll / valid_count), valid_count
+
+
+def probe_batch(directory, batch_size, device, workers=0, effective_batch_size=None):
     """A fresh worker process is used for each candidate, including OOM failures."""
     seed_everything(TRAINING["seed"])
     device = torch.device(device)
     torch.cuda.set_device(device)
     free_before, total = torch.cuda.mem_get_info(device)
-    model, _ = build_mamba3_token_model()
+    vocab_size = LosslessTokenizer(Path(directory) / "tokenizer.model").vocab_size
+    model, _ = build_mamba3_token_model(vocab_size)
     model.to(device).train()
     optimizer = optimizer_for(model)
     dataset = TokenBlockDataset(Path(directory) / "train.tokens")
-    loader = iter(DataLoader(dataset, batch_size=batch_size, num_workers=workers, pin_memory=True,
+    effective = effective_batch_size or batch_size
+    loader = iter(DataLoader(dataset, batch_size=effective, num_workers=workers, pin_memory=True,
                              shuffle=False, drop_last=True))
     times = []
     torch.cuda.reset_peak_memory_stats(device)
     for step in range(8):
         torch.cuda.synchronize(device)
         started = time.perf_counter()
-        values, targets, masks = next(loader)
-        values, targets, masks = [v.to(device, non_blocking=True) for v in (values, targets, masks)]
-        optimizer.zero_grad(set_to_none=True)
-        with autocast_context(device):
-            logits = model(values)
-        nll, count = block_loss(logits, targets, masks)
-        loss = nll / count
-        if not torch.isfinite(loss):
-            raise FloatingPointError("Probe loss is not finite")
-        loss.backward()
-        grad = torch.nn.utils.clip_grad_norm_(model.parameters(), TRAINING["max_grad_norm"])
-        if not torch.isfinite(grad):
-            raise FloatingPointError("Probe gradient is not finite")
-        optimizer.step()
-        del logits, nll, loss, count
+        accumulated_update(model, optimizer, next(loader), batch_size, device)
         torch.cuda.synchronize(device)
         if step >= 3:
             times.append(time.perf_counter()-started)
@@ -173,15 +192,20 @@ def probe_batch(directory, batch_size, device, workers=0):
     reserved = torch.cuda.max_memory_reserved(device)
     allocated = torch.cuda.max_memory_allocated(device)
     median = float(np.median(times))
-    return dict(batch_size=batch_size, workers=workers, step_seconds=times,
-                median_step_seconds=median, tokens_per_second=batch_size * 2047 / median,
+    return dict(batch_size=batch_size, effective_batch_size=effective, vocab_size=vocab_size,
+                workers=workers, step_seconds=times,
+                median_step_seconds=median, tokens_per_second=effective * 2047 / median,
                 peak_allocated_bytes=allocated, peak_reserved_bytes=reserved,
                 free_before_bytes=free_before, device_bytes=total,
                 safe=reserved <= free_before - 1024**3)
 
 
-def train(directory, batch_size, device="cuda:0", workers=4):
+def train(directory, batch_size, device="cuda:0", workers=4, micro_batch_size=None):
     directory = Path(directory)
+    micro_batch_size = batch_size if micro_batch_size is None else micro_batch_size
+    if micro_batch_size < 1 or batch_size % micro_batch_size:
+        raise ValueError("Micro batch must be a positive divisor of effective batch")
+    vocab_size = LosslessTokenizer(directory / "tokenizer.model").vocab_size
     training_dir = directory / "training"
     training_dir.mkdir(exist_ok=True)
     device = torch.device(device)
@@ -193,7 +217,11 @@ def train(directory, batch_size, device="cuda:0", workers=4):
     raw_validation_bytes = load_json(str(directory / "validation.tokens") + ".json")["raw_bytes"]
     fingerprint = {name: digest_file(directory / name) for name in
                    ("tokenizer.model", "train.tokens", "validation.tokens")}
-    model, model_config = build_mamba3_token_model()
+    manifest = directory.parent / "manifest.json"
+    if manifest.exists() and load_json(manifest).get("experiment") == "bpe-vocab-scale":
+        from .token_pipeline import code_fingerprint
+        fingerprint.update(manifest=digest_file(manifest), code=code_fingerprint())
+    model, model_config = build_mamba3_token_model(vocab_size)
     model.to(device)
     optimizer = optimizer_for(model)
     control = PlateauControl(TRAINING["threshold_bpb"], TRAINING["reduce_patience"], TRAINING["stop_patience"])
@@ -207,6 +235,7 @@ def train(directory, batch_size, device="cuda:0", workers=4):
     if latest.exists():
         checkpoint = torch.load(latest, map_location="cpu", weights_only=False)
         if (checkpoint["fingerprint"] != fingerprint or checkpoint["batch_size"] != batch_size
+                or checkpoint.get("micro_batch_size", batch_size) != micro_batch_size
                 or checkpoint["training_config"] != TRAINING or checkpoint["model_config"] != model_config):
             raise ValueError("Training inputs/configuration changed on resume")
         model.load_state_dict(checkpoint["model"], strict=True)
@@ -229,17 +258,19 @@ def train(directory, batch_size, device="cuda:0", workers=4):
 
     def checkpoint(converged=False):
         _atomic_torch_save(dict(
-            schema_version=1, model=model.state_dict(), model_config=model_config, vocab_size=4096,
+            schema_version=2, model=model.state_dict(), model_config=model_config, vocab_size=vocab_size,
             tokenizer_sha256=fingerprint["tokenizer.model"], fingerprint=fingerprint,
             optimizer=optimizer.state_dict(), control=control.state_dict(), epoch=epoch, position=position,
             updates=updates, tokens_seen=tokens_seen, elapsed_seconds=elapsed(),
             rng_state=capture_rng_state(), training_config=TRAINING, batch_size=batch_size,
+            micro_batch_size=micro_batch_size, effective_batch_size=batch_size,
             workers=workers, history=history, train_history=train_history, converged=converged), latest)
 
     def status(converged=False):
         result = dict(converged=converged, epoch=epoch, position=position, updates=updates,
                       predicted_tokens_seen=tokens_seen, elapsed_seconds=elapsed(), batch_size=batch_size,
                       workers=workers, best_bpb=control.best, bad_epochs=control.bad_epochs,
+                      vocab_size=vocab_size, micro_batch_size=micro_batch_size, effective_batch_size=batch_size,
                       learning_rate=optimizer.param_groups[0]["lr"], parameter_counts=parameter_counts(model),
                       fingerprint=fingerprint, training_config=TRAINING,
                       stop_reason="validation_plateau" if converged else "running_or_interrupted")
@@ -262,19 +293,8 @@ def train(directory, batch_size, device="cuda:0", workers=4):
                     for group in optimizer.param_groups:
                         group["lr"] = lr
                 if valid_count:
-                    values, targets, masks = [v.to(device, non_blocking=True) for v in (values, targets, masks)]
-                    optimizer.zero_grad(set_to_none=True)
-                    with autocast_context(device):
-                        logits = model(values)
-                    nll, count = block_loss(logits, targets, masks)
-                    loss = nll / count
-                    if not torch.isfinite(loss):
-                        raise FloatingPointError("Non-finite training loss")
-                    loss.backward()
-                    grad = torch.nn.utils.clip_grad_norm_(model.parameters(), TRAINING["max_grad_norm"])
-                    if not torch.isfinite(grad):
-                        raise FloatingPointError("Non-finite training gradient")
-                    optimizer.step()
+                    loss, valid_count = accumulated_update(model, optimizer,
+                        (values, targets, masks), micro_batch_size, device)
                     updates += 1
                     tokens_seen += valid_count
                     if updates == 1 or updates % 100 == 0:
@@ -282,7 +302,6 @@ def train(directory, batch_size, device="cuda:0", workers=4):
                                       predicted_tokens_seen=tokens_seen, elapsed_seconds=elapsed())
                         train_history.append(record)
                         print(record, flush=True)
-                    del logits, nll, loss, count
                 position += len(values)
                 now = time.perf_counter()
                 if now-last_save >= TRAINING["checkpoint_seconds"] or stopping[0]:
@@ -296,13 +315,13 @@ def train(directory, batch_size, device="cuda:0", workers=4):
                     break
             if stopping[0]:
                 break
-            metrics = validate(model, validation_data, raw_validation_bytes, batch_size, device, workers)
+            metrics = validate(model, validation_data, raw_validation_bytes, micro_batch_size, device, workers)
             metrics.update(epoch=epoch+1, global_update=updates, elapsed_training_seconds=elapsed())
             history.append(metrics)
             decision = control.update(metrics["bpb"])
             if decision["best"]:
                 _atomic_torch_save(dict(model=model.state_dict(), model_config=model_config,
-                    vocab_size=4096, tokenizer_sha256=fingerprint["tokenizer.model"],
+                    vocab_size=vocab_size, tokenizer_sha256=fingerprint["tokenizer.model"],
                     epoch=epoch+1, updates=updates, validation=metrics), best_path)
             if decision["reduce"]:
                 for group in optimizer.param_groups:

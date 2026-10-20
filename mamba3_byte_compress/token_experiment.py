@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import json
 import os
 from pathlib import Path
 import statistics
@@ -34,6 +35,10 @@ def git_info():
 
 def require_manifest(args):
     return load_json(args.run_dir / "manifest.json")
+
+
+def active_algorithms(args):
+    return tuple(require_manifest(args).get("algorithms", ALGORITHMS))
 
 
 def checked_result(path, **expected):
@@ -108,37 +113,60 @@ def prepare(args):
     if source.stat().st_size != 1_000_000_000:
         raise ValueError("Formal experiment requires the exact 1 GB enwik9 file")
     manifest_path = args.run_dir / "manifest.json"
-    if manifest_path.exists():
-        manifest = checked_result(manifest_path, source=str(source), source_sha256=digest_file(source),
-                                  byte_checkpoint_sha256=digest_file(args.byte_checkpoint))
+    vocab_size = getattr(args, "vocab_size", 4096)
+    algorithms = tuple(getattr(args, "algorithms", ALGORITHMS))
+    sweep = getattr(args, "experiment", None) == "bpe-vocab-scale"
+    expected = dict(source=str(source), source_sha256=digest_file(source))
+    if sweep:
+        from .token_pipeline import code_fingerprint
+        from .token_training import TRAINING
+        expected.update(experiment="bpe-vocab-scale", vocab_size=vocab_size,
+                        algorithms=list(algorithms), splits={k: list(v) for k, v in SPLITS.items()},
+                        block_size=2048, codec_batch_size=1024, tokenizer_threads=24,
+                        effective_batch_size=72, workers=0, training_config=TRAINING,
+                        code_sha256=code_fingerprint())
+        # Match JSON's representation of tuple-valued optimizer settings.
+        expected = json.loads(json.dumps(expected))
     else:
-        manifest = dict(version=1, source=str(source), source_sha256=digest_file(source),
-                        byte_checkpoint=str(args.byte_checkpoint.resolve()),
-                        byte_checkpoint_sha256=digest_file(args.byte_checkpoint),
-                        splits=SPLITS, vocab_size=4096, block_size=2048, codec_batch_size=1024,
+        expected["byte_checkpoint_sha256"] = digest_file(args.byte_checkpoint)
+    if manifest_path.exists():
+        manifest = checked_result(manifest_path, **expected)
+    else:
+        manifest = dict(version=2 if sweep else 1, splits=SPLITS, vocab_size=vocab_size,
+                        block_size=2048, codec_batch_size=1024,
                         created_git=git_info(), created_at=time.time())
+        manifest.update(expected)
+        if not sweep:
+            manifest["byte_checkpoint"] = str(args.byte_checkpoint.resolve())
         save_json(manifest_path, manifest)
     for split, (offset, count) in SPLITS.items():
         extract(source, args.run_dir / "splits" / f"{split}.bin", offset, count)
-    for algorithm in ALGORITHMS:
+    for algorithm in algorithms:
         directory = args.run_dir / algorithm
         directory.mkdir(exist_ok=True)
         model = directory / "tokenizer.model"
         if not model.exists():
             announce(f"Training SentencePiece {algorithm}")
-            metadata = train_tokenizer(source, model, algorithm, threads=min(24, len(os.sched_getaffinity(0))))
+            metadata = train_tokenizer(source, model, algorithm, vocab_size=vocab_size,
+                                       threads=24 if sweep else min(24, len(os.sched_getaffinity(0))))
             save_json(directory / "tokenizer.json", metadata)
         checked_result(directory / "tokenizer.json", sha256=digest_file(model), algorithm=algorithm,
-                       vocab_size=4096, train_bytes=100_000_000)
+                       vocab_size=vocab_size, train_bytes=100_000_000)
         tokenizer = LosslessTokenizer(model)
+        if tokenizer.vocab_size != vocab_size:
+            raise ValueError("Tokenizer vocabulary does not match manifest")
         edge_cases = tokenizer_edge_checks(tokenizer)
         thread_path = directory / "threads.json"
         if not thread_path.exists():
             announce(f"Tuning {algorithm} SentencePiece threads")
-            result = tune_threads(tokenizer, args.run_dir / "splits" / "validation.bin")
+            result = (dict(threads=24, policy="fixed_historical_bpe") if sweep else
+                      tune_threads(tokenizer, args.run_dir / "splits" / "validation.bin"))
             result["tokenizer_sha256"] = tokenizer.sha256
             save_json(thread_path, result)
-        tokenizer.threads = checked_result(thread_path, tokenizer_sha256=tokenizer.sha256)["threads"]
+        thread_settings = dict(tokenizer_sha256=tokenizer.sha256)
+        if sweep:
+            thread_settings["threads"] = 24
+        tokenizer.threads = checked_result(thread_path, **thread_settings)["threads"]
         for split, (_, count) in SPLITS.items():
             cache = directory / f"{split}.tokens"
             metadata_path = Path(str(cache) + ".json")
@@ -157,6 +185,14 @@ def prepare(args):
             save_json(full_path, full)
         checked_result(full_path, tokenizer_sha256=tokenizer.sha256,
                        original_sha256=manifest["source_sha256"], verified=True)
+    if sweep:
+        tokenizers = {algorithm: digest_file(args.run_dir / algorithm / "tokenizer.model")
+                      for algorithm in algorithms}
+        if "tokenizers" in manifest and manifest["tokenizers"] != tokenizers:
+            raise ValueError("Manifest tokenizer fingerprint changed")
+        if "tokenizers" not in manifest:
+            manifest["tokenizers"] = tokenizers
+            save_json(manifest_path, manifest)
     save_json(args.run_dir / "prepared.json", {"verified": True, "manifest_sha256": digest_file(manifest_path),
                                                "git": git_info(), "completed_at": time.time()})
     announce("All tokenizers verified, including the complete enwik9 file")

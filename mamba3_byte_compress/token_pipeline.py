@@ -14,12 +14,13 @@ import time
 import numpy as np
 
 from .tokenization import LosslessTokenizer, digest_file, load_json, save_json
-from .token_experiment import ALGORITHMS, ROOT, announce, git_info, prepare, require_manifest
+from .token_experiment import ALGORITHMS, ROOT, active_algorithms, announce, git_info, prepare, require_manifest
 
 
 def code_fingerprint():
     files = sorted((ROOT / "mamba3_byte_compress").glob("*.py"))
     files += [ROOT / "requirements-codec.txt", ROOT / "scripts/benchmark_sentencepiece.py"]
+    files += [ROOT / "scripts/benchmark_bpe_vocab.py"]
     return hashlib.sha256("".join(digest_file(path) for path in files).encode()).hexdigest()
 
 
@@ -39,10 +40,21 @@ def checked_inputs(args):
     manifest = require_manifest(args)
     if digest_file(manifest["source"]) != manifest["source_sha256"]:
         raise ValueError("Source file changed")
-    if digest_file(manifest["byte_checkpoint"]) != manifest["byte_checkpoint_sha256"]:
+    if "byte_checkpoint" in manifest and digest_file(manifest["byte_checkpoint"]) != manifest["byte_checkpoint_sha256"]:
         raise ValueError("Byte checkpoint changed")
-    for algorithm in ALGORITHMS:
+    if manifest.get("experiment") == "bpe-vocab-scale" and manifest["code_sha256"] != code_fingerprint():
+        raise ValueError("Experiment code changed; use a new run directory")
+    for algorithm in active_algorithms(args):
         directory = args.run_dir / algorithm
+        tokenizer = LosslessTokenizer(directory / "tokenizer.model")
+        if tokenizer.vocab_size != manifest["vocab_size"]:
+            raise ValueError("Tokenizer vocabulary does not match manifest")
+        if "tokenizers" in manifest and manifest["tokenizers"][algorithm] != tokenizer.sha256:
+            raise ValueError("Tokenizer fingerprint does not match manifest")
+        if manifest.get("experiment") == "bpe-vocab-scale":
+            settings = load_json(directory / "threads.json")
+            if settings["threads"] != 24 or settings["tokenizer_sha256"] != tokenizer.sha256:
+                raise ValueError("Fixed BPE tokenizer thread configuration changed")
         model_hash = digest_file(directory / "tokenizer.model")
         for split in ("train", "validation", "test"):
             meta = load_json(str(directory / f"{split}.tokens") + ".json")
@@ -81,6 +93,7 @@ def run_job(args, directory, job):
             path.rename(path.with_name(path.name + f".incomplete.{time.time_ns()}"))
     save_json(directory / "job.json", job)
     log_path = directory / "worker.log"
+    process_started = time.perf_counter()
     with log_path.open("a") as log:
         result = subprocess.run([sys.executable, "-u", str(ROOT / "scripts/benchmark_sentencepiece.py"),
                                  "worker", "--run-dir", str(args.run_dir), "--job", str(directory / "job.json")],
@@ -90,6 +103,8 @@ def run_job(args, directory, job):
     result = load_json(result_path)
     if result["job_sha256"] != signature:
         raise ValueError("Worker result signature mismatch")
+    result["process_seconds"] = time.perf_counter() - process_started
+    save_json(result_path, result)
     return result
 
 
@@ -116,7 +131,8 @@ def worker(args):
     if job["kind"] == "probe":
         from .token_training import probe_batch
         try:
-            result = probe_batch(job["directory"], job["batch_size"], job["device"], job["workers"])
+            result = probe_batch(job["directory"], job["batch_size"], job["device"], job["workers"],
+                                 effective_batch_size=job.get("effective_batch_size"))
         except RuntimeError as error:
             if not is_cuda_out_of_memory(error):
                 raise
@@ -147,26 +163,30 @@ def worker(args):
         else:
             result = (tc.decode(job["packed"], job["decoded"], predictor, profile=job.get("profile", False))
                       if token_mode else c.decode_file(job["packed"], job["decoded"], predictor))
+            external_started = time.perf_counter()
             if not c.verify_files(job["raw"], job["decoded"]):
                 raise AssertionError("Independent-process decoding differs from original bytes")
-            result.update(files_identical=True, decoded_sha256=digest_file(job["decoded"]))
+            result.update(files_identical=True, decoded_sha256=digest_file(job["decoded"]),
+                          external_verification_seconds=time.perf_counter()-external_started)
         result.update(model_load_seconds=load_seconds, warmup_seconds=prepare_seconds,
                       peak_allocated_bytes=torch.cuda.max_memory_allocated(predictor.device),
                       peak_reserved_bytes=torch.cuda.max_memory_reserved(predictor.device),
                       prediction_phases_seconds=getattr(predictor, "profile_timings", None),
                       gpu=torch.cuda.get_device_name(predictor.device), process_id=os.getpid())
+        result.update(runtime=predictor.runtime, process_seconds=time.perf_counter()-started,
+                      vocab_size=predictor.vocab_size, batch_size=predictor.batch_size)
     else:
         raise ValueError("Unknown worker kind")
     result.update(job_sha256=signature, git=git_info())
     save_json(args.job.parent / "result.json", result)
 
 
-def synthetic_preflight():
+def synthetic_preflight(vocab_sizes=(256, 4096)):
     import constriction
     family = constriction.stream.model.Categorical(perfect=False)
     rng = np.random.default_rng(2026)
     results = []
-    for vocab in (256, 4096):
+    for vocab in vocab_sizes:
         for label in ("uniform", "random", "peaked", "zeros"):
             p = rng.random((1024, vocab), dtype=np.float32)
             if label == "uniform":
@@ -218,16 +238,18 @@ def preflight(args):
     from .model import build_mamba3_token_model
     from .trainer import seed_everything, _atomic_torch_save
     import torch
-    result = dict(synthetic=synthetic_preflight(), models={})
-    for algorithm in ALGORITHMS:
+    sweep = manifest.get("experiment") == "bpe-vocab-scale"
+    vocab_size = manifest["vocab_size"]
+    result = dict(synthetic=synthetic_preflight((vocab_size,) if sweep else (256, 4096)), models={})
+    for algorithm in active_algorithms(args):
         directory = args.run_dir / algorithm
         path = directory / "preflight.pt"
         if not path.exists():
             seed_everything(2026)
-            model, config = build_mamba3_token_model()
+            model, config = build_mamba3_token_model(vocab_size)
             with torch.no_grad():
                 model.lm_head.weight.normal_(std=0.02)
-            _atomic_torch_save(dict(model=model.state_dict(), model_config=config, vocab_size=4096,
+            _atomic_torch_save(dict(model=model.state_dict(), model_config=config, vocab_size=vocab_size,
                                    tokenizer_sha256=digest_file(directory / "tokenizer.model")), path)
             del model
         trials = []
@@ -300,10 +322,13 @@ def training(args):
     gate(args, "preflight")
     tuning = gate(args, "tuning")
     # Train each model in a separate process, avoiding stale allocations between models.
-    for algorithm in ([args.algorithm] if args.algorithm else ALGORITHMS):
+    for algorithm in ([args.algorithm] if args.algorithm else active_algorithms(args)):
         if args.algorithm:
             from .token_training import train
-            summary = train(args.run_dir / algorithm, tuning["batch_size"], args.device, tuning["workers"])
+            if algorithm not in active_algorithms(args):
+                raise ValueError("Algorithm is not part of the experiment")
+            summary = train(args.run_dir / algorithm, tuning["batch_size"], args.device, tuning["workers"],
+                            micro_batch_size=tuning.get("micro_batch_size"))
             if not summary["converged"]:
                 raise RuntimeError("Training was interrupted before convergence; resume this stage")
         else:
@@ -319,7 +344,7 @@ def inference_export(checkpoint, target, algorithm):
     import torch
     state = torch.load(checkpoint, map_location="cpu", weights_only=False)
     export = {key: state[key] for key in ("model", "model_config")}
-    export.update(vocab_size=256 if algorithm == "byte" else 4096)
+    export.update(vocab_size=256 if algorithm == "byte" else state["vocab_size"])
     export["source_checkpoint_sha256"] = digest_file(checkpoint)
     if algorithm != "byte":
         export["tokenizer_sha256"] = state["tokenizer_sha256"]
