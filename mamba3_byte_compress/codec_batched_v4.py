@@ -1,5 +1,6 @@
 """v4 codec: one Range stream per batch group and batched probability models."""
 
+import contextlib
 import hashlib
 import math
 import os
@@ -87,7 +88,7 @@ def _active_rows(probabilities, active):
     return probabilities if bool(np.all(active)) else probabilities[active]
 
 
-def encode_batched_v4_file(input_path, output_path, predictor):
+def encode_batched_v4_file(input_path, output_path, predictor, *, optimized=True):
     input_path, output_path = Path(input_path), Path(output_path)
     if input_path.resolve() == output_path.resolve():
         raise ValueError("Input and output must be different files.")
@@ -98,7 +99,7 @@ def encode_batched_v4_file(input_path, output_path, predictor):
     model_nll = 0.0
     family = constriction.stream.model.Categorical(perfect=False)
     uniform = c._uniform()
-    with c._coding_mode(predictor), input_path.open("rb") as source, c._new_output(output_path) as target:
+    with c._coding_mode(predictor), input_path.open("rb") as source, c._new_output(output_path) as target, contextlib.ExitStack() as cleanup:
         count = os.fstat(source.fileno()).st_size
         _write_header(target, count, predictor)
         body = c._BodyWriter(target)
@@ -116,18 +117,27 @@ def encode_batched_v4_file(input_path, output_path, predictor):
             encoder = constriction.stream.queue.RangeEncoder()
             encoder.encode(values[:, 0].astype(np.int32), uniform)
             predictor.reset(len(lengths))
+            from .codec_graph import BatchedStepV5Predictor
+            prefetch = (optimized and isinstance(predictor, BatchedStepV5Predictor)
+                        and predictor.device.type == "cuda" and predictor.use_graph)
+            pending = predictor.iter_prefetched(values, lengths) if prefetch else None
+            if pending is not None:
+                cleanup.callback(pending.close)
             for position in range(1, values.shape[1]):
                 active = lengths > position
                 tokens = np.where(active, values[:, position - 1], 0)
-                probabilities, _ = predictor.step(tokens, active=active)
+                probabilities, _ = next(pending) if prefetch else predictor.step(tokens, active=active)
                 symbols = values[active, position].astype(np.int32)
-                active_probabilities = _active_rows(probabilities, active)
+                active_probabilities = (probabilities[:int(active.sum())] if optimized
+                                        else _active_rows(probabilities, active))
                 encoder.encode(symbols, family, active_probabilities)
                 selected = active_probabilities[np.arange(len(symbols)), symbols]
                 if np.any(selected <= 0):
                     raise FloatingPointError("A coded symbol has zero floating-point probability.")
                 model_nll -= float(np.log(selected.astype(np.float64)).sum())
                 steps += 1
+            if pending is not None:
+                pending.close()
             payload_bytes += c._write_frame(body, encoder)
             remaining -= len(data)
         if source.read(1):
@@ -145,7 +155,7 @@ def encode_batched_v4_file(input_path, output_path, predictor):
     return result
 
 
-def decode_batched_v4_file(input_path, output_path, predictor):
+def decode_batched_v4_file(input_path, output_path, predictor, *, optimized=True):
     input_path, output_path = Path(input_path), Path(output_path)
     if input_path.resolve() == output_path.resolve():
         raise ValueError("Input and output must be different files.")
@@ -173,7 +183,8 @@ def decode_batched_v4_file(input_path, output_path, predictor):
                     active = lengths > position
                     tokens = np.where(active, values[:, position - 1], 0)
                     probabilities, _ = predictor.step(tokens, active=active)
-                    active_probabilities = _active_rows(probabilities, active)
+                    active_probabilities = (probabilities[:int(active.sum())] if optimized
+                                            else _active_rows(probabilities, active))
                     values[active, position] = decoder.decode(family, active_probabilities).astype(np.uint8)
                     steps += 1
                 for lane, length in enumerate(lengths):
