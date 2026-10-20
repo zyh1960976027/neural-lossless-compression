@@ -1,0 +1,1209 @@
+{
+  "date": "2026-10-20",
+  "scope": "10 MB enwik9 validation; not a rerun of the 890 MB/1 GB benchmarks",
+  "implementation_git": {
+    "branch": "performance/sentencepiece-codec",
+    "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+    "dirty": false
+  },
+  "implementation_sha256": "dcecc704dc929c72b8f2caad4a77c55974727bc2fd2c7486d68f9912abb334f7",
+  "raw_bytes": 10000000,
+  "block_tokens": 2048,
+  "batch_size": 1024,
+  "runtime": {
+    "constriction": "0.4.2",
+    "cuda": "12.6",
+    "cuda-bindings": "13.3.1",
+    "device_type": "cuda",
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "mamba_ssm": "2.3.1",
+    "numpy": "2.2.6",
+    "nvidia-cutlass-dsl": "4.4.2",
+    "protobuf": "6.33.6",
+    "quack-kernels": "0.3.4",
+    "sentencepiece": "0.2.1",
+    "token_adapter_version": 1,
+    "torch": "2.9.1+cu126",
+    "triton": "3.5.1"
+  },
+  "benchmark": [
+    {
+      "actual_bpb": 1.3983496,
+      "algorithm": "bpe",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "decode_kb_per_second": 335.5157675347887,
+      "decode_seconds": {
+        "max": 29.940115076024085,
+        "median": 29.804858571849763,
+        "min": 29.33148688194342,
+        "samples": [
+          29.940115076024085,
+          29.804858571849763,
+          29.33148688194342
+        ]
+      },
+      "encode_kb_per_second": 258.6029976553725,
+      "encode_seconds": {
+        "max": 38.889774608192965,
+        "median": 38.66931199817918,
+        "min": 38.18131420807913,
+        "samples": [
+          38.66931199817918,
+          38.889774608192965,
+          38.18131420807913
+        ]
+      },
+      "repeats": 3,
+      "variant": "baseline",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.3983496,
+      "algorithm": "bpe",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "decode_kb_per_second": 411.7122955517841,
+      "decode_seconds": {
+        "max": 24.37899874080904,
+        "median": 24.288805819116533,
+        "min": 24.243154058931395,
+        "samples": [
+          24.37899874080904,
+          24.243154058931395,
+          24.288805819116533
+        ]
+      },
+      "encode_kb_per_second": 626.4543051710283,
+      "encode_seconds": {
+        "max": 16.03834300604649,
+        "median": 15.96285621705465,
+        "min": 15.944758428959176,
+        "samples": [
+          15.944758428959176,
+          16.03834300604649,
+          15.96285621705465
+        ]
+      },
+      "repeats": 3,
+      "variant": "optimized",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.405524,
+      "algorithm": "unigram",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "decode_kb_per_second": 355.7431093318114,
+      "decode_seconds": {
+        "max": 28.33244596212171,
+        "median": 28.110172024928033,
+        "min": 28.015692019835114,
+        "samples": [
+          28.110172024928033,
+          28.015692019835114,
+          28.33244596212171
+        ]
+      },
+      "encode_kb_per_second": 274.77954512757447,
+      "encode_seconds": {
+        "max": 36.439780133077875,
+        "median": 36.39281080896035,
+        "min": 36.32883890904486,
+        "samples": [
+          36.32883890904486,
+          36.439780133077875,
+          36.39281080896035
+        ]
+      },
+      "repeats": 3,
+      "variant": "baseline",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.405524,
+      "algorithm": "unigram",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "decode_kb_per_second": 434.9226969167282,
+      "decode_seconds": {
+        "max": 23.160518747055903,
+        "median": 22.992591720074415,
+        "min": 22.872206582920626,
+        "samples": [
+          22.992591720074415,
+          23.160518747055903,
+          22.872206582920626
+        ]
+      },
+      "encode_kb_per_second": 632.471923451491,
+      "encode_seconds": {
+        "max": 15.842744577908888,
+        "median": 15.810978526016697,
+        "min": 15.624519360018894,
+        "samples": [
+          15.810978526016697,
+          15.842744577908888,
+          15.624519360018894
+        ]
+      },
+      "repeats": 3,
+      "variant": "optimized",
+      "verified": true
+    }
+  ],
+  "profiling": [
+    {
+      "actual_bpb": 1.3983496,
+      "algorithm": "bpe",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "decode_kb_per_second": 333.14112309832154,
+      "decode_phases": {
+        "detokenize": 0.4587146481499076,
+        "framing_and_io": 0.002853373996913433,
+        "other": 0.02322438918054104,
+        "predict_and_transfer": 15.183804765576497,
+        "probability_selection": 5.397540437057614,
+        "quantize_and_range": 8.95089979795739,
+        "state_reset": 0.0002714900765568018
+      },
+      "decode_predictor_phases": {
+        "download": 5.212739531882107,
+        "model_probability": 9.415204698685557,
+        "upload": 0.2883131701964885
+      },
+      "decode_seconds": {
+        "max": 30.01730890199542,
+        "median": 30.01730890199542,
+        "min": 30.01730890199542,
+        "samples": [
+          30.01730890199542
+        ]
+      },
+      "encode_kb_per_second": 256.20768791690256,
+      "encode_phases": {
+        "diagnostics": 0.15092463209293783,
+        "framing_and_io": 0.0075024208053946495,
+        "original_hash": 0.005683358991518617,
+        "other": 0.07268780353479087,
+        "predict_and_transfer": 15.136791938683018,
+        "probability_selection": 5.991342444671318,
+        "probability_validation": 8.375318424310535,
+        "quantize_and_range": 8.290551002603024,
+        "restore_and_hash": 0.41376330819912255,
+        "state_reset": 0.000250927172601223,
+        "tokenize": 0.5860187669750303
+      },
+      "encode_predictor_phases": {
+        "download": 4.990057203685865,
+        "model_probability": 9.476265570847318,
+        "upload": 0.36867275391705334
+      },
+      "encode_seconds": {
+        "max": 39.03083502803929,
+        "median": 39.03083502803929,
+        "min": 39.03083502803929,
+        "samples": [
+          39.03083502803929
+        ]
+      },
+      "repeats": 1,
+      "variant": "baseline",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.3983496,
+      "algorithm": "bpe",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "decode_kb_per_second": 411.7435650061646,
+      "decode_phases": {
+        "detokenize": 0.46205914695747197,
+        "framing_and_io": 0.003511246060952544,
+        "other": 0.01677214540541172,
+        "predict_and_transfer": 14.92323384154588,
+        "probability_selection": 0.019537890795618296,
+        "quantize_and_range": 8.861629310064018,
+        "state_reset": 0.00021764915436506271
+      },
+      "decode_predictor_phases": {
+        "download": 4.903672961052507,
+        "model_probability": 9.632290446199477,
+        "upload": 0.2280308068729937
+      },
+      "decode_seconds": {
+        "max": 24.286961229983717,
+        "median": 24.286961229983717,
+        "min": 24.286961229983717,
+        "samples": [
+          24.286961229983717
+        ]
+      },
+      "encode_kb_per_second": 621.8245072244376,
+      "encode_phases": {
+        "diagnostics": 0.12864359351806343,
+        "framing_and_io": 0.005741848144680262,
+        "original_hash": 0.005616230191662908,
+        "other": 0.03749209037050605,
+        "predict_and_transfer": 6.301284759771079,
+        "probability_selection": 0.04425671463832259,
+        "probability_validation": 0.0012224679812788963,
+        "quantize_and_range": 8.560647001489997,
+        "restore_and_hash": 0.4121669849846512,
+        "state_reset": 0.00023832102306187153,
+        "tokenize": 0.5843977427575737
+      },
+      "encode_predictor_phases": {
+        "download": 5.11506406033041,
+        "model_probability": 9.579853114247204,
+        "upload": 0.20566774402884797
+      },
+      "encode_seconds": {
+        "max": 16.081707754870877,
+        "median": 16.081707754870877,
+        "min": 16.081707754870877,
+        "samples": [
+          16.081707754870877
+        ]
+      },
+      "repeats": 1,
+      "variant": "optimized",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.405524,
+      "algorithm": "unigram",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "decode_kb_per_second": 341.5335618608828,
+      "decode_phases": {
+        "detokenize": 0.46844886103644967,
+        "framing_and_io": 0.002778553869575262,
+        "other": 0.024408908560872078,
+        "predict_and_transfer": 15.171182809164748,
+        "probability_selection": 5.641218391014263,
+        "quantize_and_range": 7.971444030292332,
+        "state_reset": 0.00021776906214654446
+      },
+      "decode_predictor_phases": {
+        "download": 4.936759093776345,
+        "model_probability": 9.69372089090757,
+        "upload": 0.28162401844747365
+      },
+      "decode_seconds": {
+        "max": 29.279699323000386,
+        "median": 29.279699323000386,
+        "min": 29.279699323000386,
+        "samples": [
+          29.279699323000386
+        ]
+      },
+      "encode_kb_per_second": 258.41914944919756,
+      "encode_phases": {
+        "diagnostics": 0.16221917560324073,
+        "framing_and_io": 0.005513442913070321,
+        "original_hash": 0.005558782955631614,
+        "other": 0.07338880794122815,
+        "predict_and_transfer": 15.587321752449498,
+        "probability_selection": 6.064319444354624,
+        "probability_validation": 8.5182363265194,
+        "quantize_and_range": 7.323760189814493,
+        "restore_and_hash": 0.42698244913481176,
+        "state_reset": 0.00023656710982322693,
+        "tokenize": 0.5292857282329351
+      },
+      "encode_predictor_phases": {
+        "download": 5.176743980962783,
+        "model_probability": 9.72409775503911,
+        "upload": 0.3740336860064417
+      },
+      "encode_seconds": {
+        "max": 38.696822667028755,
+        "median": 38.696822667028755,
+        "min": 38.696822667028755,
+        "samples": [
+          38.696822667028755
+        ]
+      },
+      "repeats": 1,
+      "variant": "baseline",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.405524,
+      "algorithm": "unigram",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "decode_kb_per_second": 420.4324300528866,
+      "decode_phases": {
+        "detokenize": 0.49486765917390585,
+        "framing_and_io": 0.003415942657738924,
+        "other": 0.017321764957159758,
+        "predict_and_transfer": 15.348240204853937,
+        "probability_selection": 0.018188786460086703,
+        "quantize_and_range": 7.902793078683317,
+        "state_reset": 0.00020741112530231476
+      },
+      "decode_predictor_phases": {
+        "download": 5.104539750143886,
+        "model_probability": 9.876506051048636,
+        "upload": 0.210999493021518
+      },
+      "decode_seconds": {
+        "max": 23.785034847911447,
+        "median": 23.785034847911447,
+        "min": 23.785034847911447,
+        "samples": [
+          23.785034847911447
+        ]
+      },
+      "encode_kb_per_second": 609.6199297315387,
+      "encode_phases": {
+        "diagnostics": 0.1260828864760697,
+        "framing_and_io": 0.007336412090808153,
+        "original_hash": 0.005743693094700575,
+        "other": 0.03683351329527795,
+        "predict_and_transfer": 7.654246333288029,
+        "probability_selection": 0.044779215939342976,
+        "probability_validation": 0.0011894272174686193,
+        "quantize_and_range": 7.576842047041282,
+        "restore_and_hash": 0.41730934497900307,
+        "state_reset": 0.00023674685508012772,
+        "tokenize": 0.5330635677091777
+      },
+      "encode_predictor_phases": {
+        "download": 5.213163294851791,
+        "model_probability": 9.855696602582913,
+        "upload": 0.19671142398752284
+      },
+      "encode_seconds": {
+        "max": 16.40366318798624,
+        "median": 16.40366318798624,
+        "min": 16.40366318798624,
+        "samples": [
+          16.40366318798624
+        ]
+      },
+      "repeats": 1,
+      "variant": "optimized",
+      "verified": true
+    }
+  ],
+  "timing_notes": [
+    "Speeds use uninstrumented independent-process runs, median of three, alternating variant order.",
+    "Optimized encode GPU event times overlap CPU phases and must not be added to wall-time phases.",
+    "Probability validation remains enabled on GPU; reconstruction/SHA256/CRC checks are retained.",
+    "Model loading/warmup and external byte comparison are measured outside codec time."
+  ],
+  "tests": {
+    "cpu": {
+      "total": 93,
+      "passed": 85,
+      "skipped": 8
+    },
+    "token_gpu": {
+      "total": 3,
+      "passed": 3
+    },
+    "byte_regression": {
+      "total": 4,
+      "passed": 4,
+      "includes_full_gpu_recurrence": true
+    }
+  },
+  "runs": [
+    {
+      "artifact": "experiments/tokenizers/performance_final_profile_20261020/bpe/baseline/repeat1/decode/result.json",
+      "algorithm": "bpe",
+      "variant": "baseline",
+      "operation": "decode",
+      "profile": true,
+      "model_load_seconds": 4.469786266097799,
+      "warmup_seconds": 2.65214125206694,
+      "peak_allocated_bytes": 1431459328,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_profile_20261020/bpe/baseline/repeat1/encode/result.json",
+      "algorithm": "bpe",
+      "variant": "baseline",
+      "operation": "encode",
+      "profile": true,
+      "model_load_seconds": 4.357106992043555,
+      "warmup_seconds": 2.5796296580228955,
+      "peak_allocated_bytes": 1431459328,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_profile_20261020/bpe/optimized/repeat1/decode/result.json",
+      "algorithm": "bpe",
+      "variant": "optimized",
+      "operation": "decode",
+      "profile": true,
+      "model_load_seconds": 4.478528107050806,
+      "warmup_seconds": 2.6283486059401184,
+      "peak_allocated_bytes": 1431460352,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_profile_20261020/bpe/optimized/repeat1/encode/result.json",
+      "algorithm": "bpe",
+      "variant": "optimized",
+      "operation": "encode",
+      "profile": true,
+      "model_load_seconds": 4.393345474964008,
+      "warmup_seconds": 2.573560907971114,
+      "peak_allocated_bytes": 1431460352,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_profile_20261020/unigram/baseline/repeat1/decode/result.json",
+      "algorithm": "unigram",
+      "variant": "baseline",
+      "operation": "decode",
+      "profile": true,
+      "model_load_seconds": 4.511568343034014,
+      "warmup_seconds": 2.5891860728152096,
+      "peak_allocated_bytes": 1464776704,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_profile_20261020/unigram/baseline/repeat1/encode/result.json",
+      "algorithm": "unigram",
+      "variant": "baseline",
+      "operation": "encode",
+      "profile": true,
+      "model_load_seconds": 4.4154479179997,
+      "warmup_seconds": 2.5253811101429164,
+      "peak_allocated_bytes": 1464776704,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_profile_20261020/unigram/optimized/repeat1/decode/result.json",
+      "algorithm": "unigram",
+      "variant": "optimized",
+      "operation": "decode",
+      "profile": true,
+      "model_load_seconds": 4.280938048148528,
+      "warmup_seconds": 2.554512096103281,
+      "peak_allocated_bytes": 1464777728,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_profile_20261020/unigram/optimized/repeat1/encode/result.json",
+      "algorithm": "unigram",
+      "variant": "optimized",
+      "operation": "encode",
+      "profile": true,
+      "model_load_seconds": 4.281677956925705,
+      "warmup_seconds": 2.662426447030157,
+      "peak_allocated_bytes": 1464777728,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/baseline/repeat1/decode/result.json",
+      "algorithm": "bpe",
+      "variant": "baseline",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.443383773090318,
+      "warmup_seconds": 2.5481487109791487,
+      "peak_allocated_bytes": 1431459328,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/baseline/repeat1/encode/result.json",
+      "algorithm": "bpe",
+      "variant": "baseline",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.494844749104232,
+      "warmup_seconds": 2.6664255699142814,
+      "peak_allocated_bytes": 1431459328,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/baseline/repeat2/decode/result.json",
+      "algorithm": "bpe",
+      "variant": "baseline",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.608229676960036,
+      "warmup_seconds": 2.5713166971690953,
+      "peak_allocated_bytes": 1431459328,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/baseline/repeat2/encode/result.json",
+      "algorithm": "bpe",
+      "variant": "baseline",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.435902266995981,
+      "warmup_seconds": 2.5657026551198214,
+      "peak_allocated_bytes": 1431459328,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/baseline/repeat3/decode/result.json",
+      "algorithm": "bpe",
+      "variant": "baseline",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.362333158962429,
+      "warmup_seconds": 2.5682045209687203,
+      "peak_allocated_bytes": 1431459328,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/baseline/repeat3/encode/result.json",
+      "algorithm": "bpe",
+      "variant": "baseline",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.426188605139032,
+      "warmup_seconds": 2.652550013968721,
+      "peak_allocated_bytes": 1431459328,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/optimized/repeat1/decode/result.json",
+      "algorithm": "bpe",
+      "variant": "optimized",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.387193972943351,
+      "warmup_seconds": 2.6256364069413394,
+      "peak_allocated_bytes": 1431460352,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/optimized/repeat1/encode/result.json",
+      "algorithm": "bpe",
+      "variant": "optimized",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.5018097488209605,
+      "warmup_seconds": 2.6630590378772467,
+      "peak_allocated_bytes": 1431460352,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/optimized/repeat2/decode/result.json",
+      "algorithm": "bpe",
+      "variant": "optimized",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.544502422912046,
+      "warmup_seconds": 2.671631206991151,
+      "peak_allocated_bytes": 1431460352,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/optimized/repeat2/encode/result.json",
+      "algorithm": "bpe",
+      "variant": "optimized",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.611030710861087,
+      "warmup_seconds": 2.7206883071921766,
+      "peak_allocated_bytes": 1431460352,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/optimized/repeat3/decode/result.json",
+      "algorithm": "bpe",
+      "variant": "optimized",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.487306773895398,
+      "warmup_seconds": 2.6233136458322406,
+      "peak_allocated_bytes": 1431460352,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/bpe/optimized/repeat3/encode/result.json",
+      "algorithm": "bpe",
+      "variant": "optimized",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.454991020960733,
+      "warmup_seconds": 2.5828238409012556,
+      "peak_allocated_bytes": 1431460352,
+      "peak_reserved_bytes": 1541406720,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "expected_compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/baseline/repeat1/decode/result.json",
+      "algorithm": "unigram",
+      "variant": "baseline",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.342567648040131,
+      "warmup_seconds": 2.4966835658997297,
+      "peak_allocated_bytes": 1464776704,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/baseline/repeat1/encode/result.json",
+      "algorithm": "unigram",
+      "variant": "baseline",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.317555062938482,
+      "warmup_seconds": 2.706852667964995,
+      "peak_allocated_bytes": 1464776704,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/baseline/repeat2/decode/result.json",
+      "algorithm": "unigram",
+      "variant": "baseline",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.264173710951582,
+      "warmup_seconds": 2.48890122002922,
+      "peak_allocated_bytes": 1464776704,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/baseline/repeat2/encode/result.json",
+      "algorithm": "unigram",
+      "variant": "baseline",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.3048673330340534,
+      "warmup_seconds": 2.572798548033461,
+      "peak_allocated_bytes": 1464776704,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/baseline/repeat3/decode/result.json",
+      "algorithm": "unigram",
+      "variant": "baseline",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.362780817085877,
+      "warmup_seconds": 2.511406130855903,
+      "peak_allocated_bytes": 1464776704,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/baseline/repeat3/encode/result.json",
+      "algorithm": "unigram",
+      "variant": "baseline",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.184717672877014,
+      "warmup_seconds": 2.5551487929187715,
+      "peak_allocated_bytes": 1464776704,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/optimized/repeat1/decode/result.json",
+      "algorithm": "unigram",
+      "variant": "optimized",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.235873888945207,
+      "warmup_seconds": 2.526801136089489,
+      "peak_allocated_bytes": 1464777728,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/optimized/repeat1/encode/result.json",
+      "algorithm": "unigram",
+      "variant": "optimized",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.363846549997106,
+      "warmup_seconds": 2.4855653401464224,
+      "peak_allocated_bytes": 1464777728,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/optimized/repeat2/decode/result.json",
+      "algorithm": "unigram",
+      "variant": "optimized",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.420812112977728,
+      "warmup_seconds": 2.6927811929490417,
+      "peak_allocated_bytes": 1464777728,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/optimized/repeat2/encode/result.json",
+      "algorithm": "unigram",
+      "variant": "optimized",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.33311499399133,
+      "warmup_seconds": 2.602364405989647,
+      "peak_allocated_bytes": 1464777728,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/optimized/repeat3/decode/result.json",
+      "algorithm": "unigram",
+      "variant": "optimized",
+      "operation": "decode",
+      "profile": false,
+      "model_load_seconds": 4.336382813984528,
+      "warmup_seconds": 2.6244548661634326,
+      "peak_allocated_bytes": 1464777728,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": null,
+      "original_sha256": null,
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "files_identical": true,
+      "original_compressed_bytes_identical": null
+    },
+    {
+      "artifact": "experiments/tokenizers/performance_final_comparison_20261020/unigram/optimized/repeat3/encode/result.json",
+      "algorithm": "unigram",
+      "variant": "optimized",
+      "operation": "encode",
+      "profile": false,
+      "model_load_seconds": 4.306902516866103,
+      "warmup_seconds": 2.5376359450165182,
+      "peak_allocated_bytes": 1464777728,
+      "peak_reserved_bytes": 1583349760,
+      "git": {
+        "branch": "performance/sentencepiece-codec",
+        "commit": "1ee105588fbb5df716d904f57457d500af353aa1",
+        "dirty": false
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "tokenizer_sha256": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+      "expected_compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": null,
+      "files_identical": null,
+      "original_compressed_bytes_identical": true
+    }
+  ]
+}
