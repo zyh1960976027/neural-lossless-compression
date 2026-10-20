@@ -15,6 +15,12 @@ from .codec_step_adapter import _aligned_rows
 from .metrics import autocast_context
 
 
+def probability_validity(probabilities):
+    smallest, largest = torch.aminmax(probabilities, dim=-1)
+    return (torch.isfinite(smallest) & torch.isfinite(largest)
+            & (smallest >= 0) & (largest > 0)).all()
+
+
 class BufferedMambaStep:
     def __init__(self, mixer):
         if mixer.is_mimo or mixer.is_outproj_norm:
@@ -64,9 +70,10 @@ class BufferedMambaStep:
 class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
     profile = c.BATCHED_V5_PROFILE
 
-    def __init__(self, *args, use_graph=True, **kwargs):
+    def __init__(self, *args, use_graph=True, check_probabilities=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_graph = use_graph
+        self.check_probabilities = check_probabilities
         self._contexts = OrderedDict()
         self.graph_prepare_seconds = 0.0
         self.graph_cache_hits = 0
@@ -80,7 +87,10 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
                 x = x + mixed
                 x = x + block.mlp(block.norm2(x))
             logits = self.model.lm_head(self.model.final_norm(x)).float()
-        return logits.softmax(dim=-1)
+        probabilities = logits.softmax(dim=-1)
+        if self.check_probabilities:
+            self._probabilities_valid = probability_validity(probabilities)
+        return probabilities
 
     def _clear_states(self):
         for states in self.states:
@@ -109,6 +119,9 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
         self._buffered_steps = [BufferedMambaStep(block.mixer) for block in self.model.blocks]
         self._graph = None
         self._probabilities = None
+        self._probabilities_valid = None
+        self._host_valid = torch.empty((), dtype=torch.bool, pin_memory=self.device.type == "cuda")
+        self._prefetch_slots = None
         if self.use_graph:
             if self.device.type != "cuda":
                 raise RuntimeError("CUDA Graph inference requires CUDA.")
@@ -133,8 +146,85 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
             self.graph_prepare_seconds += time.perf_counter() - started
             self.graph_capture_count += 1
         keys = ("active_batch_size", "states", "_token", "_host_token",
-                "_host_probabilities", "_buffered_steps", "_graph", "_probabilities")
+                "_host_probabilities", "_buffered_steps", "_graph", "_probabilities", "_prefetch_slots",
+                "_probabilities_valid", "_host_valid")
         self._contexts[size] = {key: getattr(self, key) for key in keys}
+
+    def prepare_prefetch(self):
+        """Two owned pinned buffers; no tensor arithmetic or probability changes."""
+        if self.device.type != "cuda" or not self.use_graph:
+            raise ValueError("Prefetch requires CUDA graph inference")
+        if self._prefetch_slots is None:
+            self._prefetch_slots = [dict(
+                tokens=torch.empty_like(self._host_token, pin_memory=True),
+                probabilities=torch.empty_like(self._host_probabilities, pin_memory=True),
+                valid=torch.empty((), dtype=torch.bool, pin_memory=True),
+                ready=torch.cuda.Event(),
+                events=[torch.cuda.Event(enable_timing=True) for _ in range(4)]) for _ in range(2)]
+            self._contexts[self.active_batch_size]["_prefetch_slots"] = self._prefetch_slots
+
+    @torch.inference_mode()
+    def _enqueue_prefetch(self, tokens, slot):
+        timing = getattr(self, "profile_timings", None)
+        stream = torch.cuda.current_stream(self.device)
+        if timing is not None:
+            slot["events"][0].record(stream)
+        slot["tokens"].numpy()[:] = tokens
+        self._token.copy_(slot["tokens"], non_blocking=True)
+        if timing is not None:
+            slot["events"][1].record(stream)
+        self._graph.replay()
+        if timing is not None:
+            slot["events"][2].record(stream)
+        # All submissions share the current stream: the graph's reusable device
+        # output is copied before the next replay can overwrite it.
+        slot["probabilities"].copy_(self._probabilities, non_blocking=True)
+        if self.check_probabilities:
+            slot["valid"].copy_(self._probabilities_valid, non_blocking=True)
+        if timing is not None:
+            slot["events"][3].record(stream)
+        slot["ready"].record(stream)
+        self.steps_in_block += 1
+
+    def iter_prefetched(self, values, lengths):
+        """Predict known encoder inputs ahead by one step; yield borrowed arrays.
+
+        A yielded array is valid until the consumer advances the iterator. Each
+        pinned input/output slot is reused only after its transfer completes and
+        the consumer finishes reading it. Recurrent state stays on one stream.
+        """
+        values, lengths = np.asarray(values), np.asarray(lengths)
+        if (self.steps_in_block or values.ndim != 2 or values.shape[0] != self.active_batch_size
+                or lengths.shape != (self.active_batch_size,)
+                or not np.issubdtype(values.dtype, np.integer)
+                or not np.issubdtype(lengths.dtype, np.integer)
+                or np.any(lengths < 1) or np.any(lengths > min(values.shape[1], c.BLOCK_SIZE))
+                or np.any(values < 0) or np.any(values >= self.vocab_size)):
+            raise ValueError("Prefetch requires a fresh block and valid token arrays")
+        self.prepare_prefetch()
+        limit = int(lengths.max())
+        if limit <= 1:
+            return
+        def submit(position, slot):
+            self._enqueue_prefetch(np.where(lengths > position, values[:, position-1], 0), slot)
+        submit(1, self._prefetch_slots[0])
+        try:
+            for position in range(1, limit):
+                slot = self._prefetch_slots[(position-1) % 2]
+                slot["ready"].synchronize()
+                if self.check_probabilities and not slot["valid"].item():
+                    raise ValueError("Invalid predicted probabilities")
+                timing = getattr(self, "profile_timings", None)
+                if timing is not None:
+                    events = slot["events"]
+                    for i, name in enumerate(("upload", "model_probability", "download")):
+                        timing[name] += events[i].elapsed_time(events[i+1]) / 1000
+                if position+1 < limit:
+                    submit(position+1, self._prefetch_slots[position % 2])
+                yield slot["probabilities"].numpy(), None
+        finally:
+            # Also drain queued work if a consumer rejects a distribution.
+            self.synchronize()
 
     @torch.inference_mode()
     def step(self, tokens, *, active=None):
@@ -166,7 +256,11 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
             self.synchronize()
             timing["model_probability"] += time.perf_counter() - started
             started = time.perf_counter()
+        if self.check_probabilities:
+            self._host_valid.copy_(self._probabilities_valid, non_blocking=True)
         self._host_probabilities.copy_(probabilities, non_blocking=False)
+        if self.check_probabilities and not self._host_valid.item():
+            raise ValueError("Invalid predicted probabilities")
         if timing is not None:
             timing["download"] += time.perf_counter() - started
         self.steps_in_block += 1
