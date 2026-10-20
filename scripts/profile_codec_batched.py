@@ -1231,7 +1231,7 @@ def run_parent(args):
     write_json(output / "verification.json", verification)
     write_json(output / "results.json", results)
     write_csv_files(output, results)
-    with (output / "report.md").open("x", encoding="utf-8") as handle:
+    with (output / "实验报告.md").open("x", encoding="utf-8") as handle:
         handle.write(render_report(results))
     print(json.dumps(verification, indent=2, ensure_ascii=False), flush=True)
 

@@ -262,8 +262,8 @@ def write_summary(output, models):
         "", "MACs 包含模型线性投影、输出头、循环状态衰减、两次状态注入和一次状态读出；其他逐元素运算与区间编码不计入。",
         "峰值显存为 PyTorch 分配量，不包含 CUDA 上下文、第三方库直接分配量和其他进程。", "",
     ])
-    if not (output / "report.md").exists():
-        with (output / "report.md").open("x", encoding="utf-8") as handle:
+    if not (output / "实验报告.md").exists():
+        with (output / "实验报告.md").open("x", encoding="utf-8") as handle:
             handle.write("\n".join(lines))
 
 
@@ -473,7 +473,7 @@ def run_experiment(args):
     if not results_path.exists():
         write_json(results_path, {"manifest": current_manifest, "models": models,
                                   "acceptance": acceptance})
-    if not (output / "summary.csv").exists() or not (output / "report.md").exists():
+    if not (output / "summary.csv").exists() or not (output / "实验报告.md").exists():
         write_summary(output, models)
     print(json.dumps({"experiment_dir": str(output), "acceptance": acceptance},
                      indent=2, ensure_ascii=False), flush=True)

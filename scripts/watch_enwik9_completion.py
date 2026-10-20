@@ -123,8 +123,11 @@ def main():
     if args.interval <= 0:
         parser.error("--interval must be positive")
     directory = args.directory.resolve(strict=True)
-    required = ("results.json", "summary.csv", "report.md")
-    while args.pid is not None and not all((directory / name).exists() for name in required):
+    required = ("results.json", "summary.csv")
+    reports = ("实验报告.md", "report.md")  # Accept reports from historical runs.
+    while args.pid is not None and not (
+            all((directory / name).exists() for name in required)
+            and any((directory / name).exists() for name in reports)):
         if not process_alive(args.pid):
             result = {"status": "failed", "directory": str(directory),
                       "error": "Benchmark exited before writing all final artifacts"}

@@ -118,7 +118,7 @@ class FullEnwik9HarnessTest(unittest.TestCase):
                             if isinstance(value, float)))
         full.write_summary(self.root, {"model": result})
         self.assertIn("actual_bpb", (self.root / "summary.csv").read_text())
-        self.assertIn("model", (self.root / "report.md").read_text())
+        self.assertIn("model", (self.root / "实验报告.md").read_text())
 
     def test_interrupted_run_resumes_without_repeating_inference(self):
         source = self.root / "source"

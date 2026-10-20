@@ -177,7 +177,7 @@ def report(args, runs, cold, model):
               '仅复用缓冲区的收益较小，主要改善来自图重放减少每一步的重复调度。'
               'Mamba 循环状态更新仍使用原内核；本轮没有改变模型结构、权重或计算精度。'
               '进一步优化应重新跟踪剩余模型计算，重点评估状态更新内核，本轮不据此承诺额外加速幅度。', '']
-    (args.output / 'report.md').write_text('\n'.join(lines))
+    (args.output / '实验报告.md').write_text('\n'.join(lines), encoding='utf-8')
     print(json.dumps(dict(stable_speedup=accepted, summary=summary), indent=2), flush=True)
 
 

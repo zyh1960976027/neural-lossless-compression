@@ -432,7 +432,7 @@ def report(args):
                   f"[验证曲线]({algorithm}/training/bpb_vs_steps.png) · [完整训练记录]({algorithm}/training/history.json)"]
     lines += ["", "完整 JSON 保存预检耗时、环境、权重指纹及逐字节比较和 SHA256 证明。",
               "", "状态：" + ("全部完成。" if complete else "实验尚未全部完成；缺失结果不会用估算值填充。")]
-    (args.run_dir / "report.md").write_text("\n".join(lines) + "\n")
+    (args.run_dir / "实验报告.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return complete
 
 
