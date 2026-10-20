@@ -1,0 +1,453 @@
+{
+  "complete": true,
+  "code_sha256": "2980b363acc3a72d891c8af9e4994019e1b5038ea81dca4867f597cbdff6a1b3",
+  "git": {
+    "branch": "experiment/sentencepiece-tokenizers",
+    "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+    "dirty": false
+  },
+  "manifest": {
+    "block_size": 2048,
+    "byte_checkpoint": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/checkpoints/best-3M.pt",
+    "byte_checkpoint_sha256": "6381a23319353bd9a031173117e8cc8a742dccdf2daa34d0cb064d35d2bab17c",
+    "codec_batch_size": 1024,
+    "created_at": 1792382231.4717636,
+    "created_git": {
+      "branch": "experiment/sentencepiece-tokenizers",
+      "commit": "3c2196f6a1883d4a064db6c1d17129753cbf10ee",
+      "dirty": true
+    },
+    "source": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/datasets/raw/enwik9",
+    "source_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+    "splits": {
+      "test": [
+        110000000,
+        890000000
+      ],
+      "train": [
+        0,
+        100000000
+      ],
+      "validation": [
+        100000000,
+        10000000
+      ]
+    },
+    "version": 1,
+    "vocab_size": 4096
+  },
+  "historical": {
+    "actual_bpb": 1.337071088,
+    "algorithm": "byte",
+    "decode_kb_per_second": 371.8051155889493,
+    "encode_kb_per_second": 361.7320167044504,
+    "original_bytes": 1000000000,
+    "source": "experiments/test/20260916_160926_enwik9_full/summary.csv",
+    "split": "historical_full"
+  },
+  "results": [
+    {
+      "actual_bpb": 1.3418889168539325,
+      "algorithm": "byte",
+      "backbone_params": 3275212,
+      "checkpoint_sha256": "153ca8d1f61daa809cc1aec460e611a1c85000559ed01b686ac78e468c8a7312",
+      "compressed_bytes": 149285142,
+      "decode_kb_per_second": 372.7350686201403,
+      "encode_kb_per_second": 380.0988302392545,
+      "including_weights_bpb": 1.4662283595505619,
+      "inference_package_bytes": 13832763,
+      "original_bytes": 890000000,
+      "raw_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "split": "test",
+      "total_params": 3455436,
+      "training_source": "historical_checkpoint",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.337071088,
+      "algorithm": "byte",
+      "backbone_params": 3275212,
+      "checkpoint_sha256": "153ca8d1f61daa809cc1aec460e611a1c85000559ed01b686ac78e468c8a7312",
+      "compressed_bytes": 167133886,
+      "decode_kb_per_second": 374.24951948119354,
+      "encode_kb_per_second": 379.69447926150895,
+      "including_weights_bpb": 1.447733192,
+      "inference_package_bytes": 13832763,
+      "original_bytes": 1000000000,
+      "raw_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "split": "full",
+      "total_params": 3455436,
+      "training_source": "historical_checkpoint",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.2875722606741573,
+      "algorithm": "bpe",
+      "backbone_params": 3275212,
+      "best_validation_bpb": 1.3371507415213435,
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "compressed_bytes": 143242414,
+      "converged": true,
+      "decode_kb_per_second": 351.4915977053069,
+      "encode_kb_per_second": 269.129500348192,
+      "including_weights_bpb": 1.5091123146067416,
+      "inference_package_bytes": 24646331,
+      "original_bytes": 890000000,
+      "raw_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "split": "test",
+      "total_params": 6158796,
+      "training_epochs": 98,
+      "training_predicted_tokens": 3498492690,
+      "training_seconds": 6405.88716558693,
+      "training_source": "trained_from_scratch",
+      "training_stop_reason": "validation_plateau",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.274247608,
+      "algorithm": "bpe",
+      "backbone_params": 3275212,
+      "best_validation_bpb": 1.3371507415213435,
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "compressed_bytes": 159280951,
+      "converged": true,
+      "decode_kb_per_second": 360.0754531796998,
+      "encode_kb_per_second": 258.32624820936815,
+      "including_weights_bpb": 1.471418256,
+      "inference_package_bytes": 24646331,
+      "original_bytes": 1000000000,
+      "raw_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "split": "full",
+      "total_params": 6158796,
+      "training_epochs": 98,
+      "training_predicted_tokens": 3498492690,
+      "training_seconds": 6405.88716558693,
+      "training_source": "trained_from_scratch",
+      "training_stop_reason": "validation_plateau",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.2896005573033709,
+      "algorithm": "unigram",
+      "backbone_params": 3275212,
+      "best_validation_bpb": 1.341474434689336,
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "compressed_bytes": 143468062,
+      "converged": true,
+      "decode_kb_per_second": 372.60273987269915,
+      "encode_kb_per_second": 273.61352979258345,
+      "including_weights_bpb": 1.5111406112359551,
+      "inference_package_bytes": 24646331,
+      "original_bytes": 890000000,
+      "raw_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "split": "test",
+      "total_params": 6158796,
+      "training_epochs": 76,
+      "training_predicted_tokens": 2782099396,
+      "training_seconds": 5071.333104790887,
+      "training_source": "trained_from_scratch",
+      "training_stop_reason": "validation_plateau",
+      "verified": true
+    },
+    {
+      "actual_bpb": 1.276954776,
+      "algorithm": "unigram",
+      "backbone_params": 3275212,
+      "best_validation_bpb": 1.341474434689336,
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "compressed_bytes": 159619347,
+      "converged": true,
+      "decode_kb_per_second": 375.19024317043176,
+      "encode_kb_per_second": 276.1089439359404,
+      "including_weights_bpb": 1.474125424,
+      "inference_package_bytes": 24646331,
+      "original_bytes": 1000000000,
+      "raw_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "split": "full",
+      "total_params": 6158796,
+      "training_epochs": 76,
+      "training_predicted_tokens": 2782099396,
+      "training_seconds": 5071.333104790887,
+      "training_source": "trained_from_scratch",
+      "training_stop_reason": "validation_plateau",
+      "verified": true
+    }
+  ],
+  "training": {
+    "bpe": {
+      "bad_epochs": 15,
+      "batch_size": 72,
+      "best_bpb": 1.3371507415213435,
+      "converged": true,
+      "elapsed_seconds": 6405.88716558693,
+      "epoch": 98,
+      "fingerprint": {
+        "tokenizer.model": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+        "train.tokens": "8127ecf44e889ad33d5926509020bcf8571e25b1c1ed4d2fda57cc2b0300a97f",
+        "validation.tokens": "94575f445ef76ee2a028bec303fa9f4a6816b2bb26e2d788f1cf4675b9d285b5"
+      },
+      "learning_rate": 1.875e-05,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 6158796
+      },
+      "position": 0,
+      "predicted_tokens_seen": 3498492690,
+      "stop_reason": "validation_plateau",
+      "training_config": {
+        "betas": [
+          0.9,
+          0.99
+        ],
+        "checkpoint_seconds": 900,
+        "eps": 1e-08,
+        "max_grad_norm": 5.0,
+        "min_lr": 6e-06,
+        "peak_lr": 0.0006,
+        "progress_seconds": 43200,
+        "reduce_patience": 5,
+        "seed": 2026,
+        "stop_patience": 15,
+        "threshold_bpb": 0.001
+      },
+      "updates": 23814,
+      "workers": 0,
+      "best_epoch": 83,
+      "best_update": 20169
+    },
+    "unigram": {
+      "bad_epochs": 15,
+      "batch_size": 72,
+      "best_bpb": 1.341474434689336,
+      "converged": true,
+      "elapsed_seconds": 5071.333104790887,
+      "epoch": 76,
+      "fingerprint": {
+        "tokenizer.model": "93e1e4e0d4dc957d8efa4ace32d96d4cd8eb2cafb57f48b38f6b53a3f0afcb30",
+        "train.tokens": "c656cbab51c3d456e64d15b63b7711b798f042ae2f47d9d18a4c5734f1c6c5ed",
+        "validation.tokens": "8f8f9ebe1c9c1eca93eb85560d14fa1e3c5c735cbb369a52abbeeb4f597b22e5"
+      },
+      "learning_rate": 3.75e-05,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 6158796
+      },
+      "position": 0,
+      "predicted_tokens_seen": 2782099396,
+      "stop_reason": "validation_plateau",
+      "training_config": {
+        "betas": [
+          0.9,
+          0.99
+        ],
+        "checkpoint_seconds": 900,
+        "eps": 1e-08,
+        "max_grad_norm": 5.0,
+        "min_lr": 6e-06,
+        "peak_lr": 0.0006,
+        "progress_seconds": 43200,
+        "reduce_patience": 5,
+        "seed": 2026,
+        "stop_patience": 15,
+        "threshold_bpb": 0.001
+      },
+      "updates": 18924,
+      "workers": 0,
+      "best_epoch": 68,
+      "best_update": 16932
+    }
+  },
+  "verification": [
+    {
+      "algorithm": "byte",
+      "split": "validation",
+      "original_bytes": 10000000,
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "compressed_sha256": "34e864ffefb0fbbfa55df19fc788c1c52e3f09e5981fff490b980c7c2f18e99c",
+      "checkpoint_sha256": "153ca8d1f61daa809cc1aec460e611a1c85000559ed01b686ac78e468c8a7312",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    },
+    {
+      "algorithm": "byte",
+      "split": "test",
+      "original_bytes": 890000000,
+      "original_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "decoded_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "compressed_sha256": "ff7f5ea955650e770031cd4e5878ea2bfeaac5dec685b4a24996e08402e2c373",
+      "checkpoint_sha256": "153ca8d1f61daa809cc1aec460e611a1c85000559ed01b686ac78e468c8a7312",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    },
+    {
+      "algorithm": "byte",
+      "split": "full",
+      "original_bytes": 1000000000,
+      "original_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "decoded_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "compressed_sha256": "0415724678014a821f432ecd334b1da7abbed08bedb69e87e2ecba64830c0ca8",
+      "checkpoint_sha256": "153ca8d1f61daa809cc1aec460e611a1c85000559ed01b686ac78e468c8a7312",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    },
+    {
+      "algorithm": "bpe",
+      "split": "validation",
+      "original_bytes": 10000000,
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    },
+    {
+      "algorithm": "bpe",
+      "split": "test",
+      "original_bytes": 890000000,
+      "original_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "decoded_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "compressed_sha256": "cafbbe3235fecbca0670c0eccfe5250c9396055d052d0a0af2f01333dc507b39",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    },
+    {
+      "algorithm": "bpe",
+      "split": "full",
+      "original_bytes": 1000000000,
+      "original_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "decoded_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "compressed_sha256": "432e3a96762a3d08de2f8e4824a193c17d50277f038e75829eb0217bd93aeead",
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    },
+    {
+      "algorithm": "unigram",
+      "split": "validation",
+      "original_bytes": 10000000,
+      "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "compressed_sha256": "67441c61b7fe3dce6462ca805a9c93639ca6eb4ff64a71d82d7531e900fc00f5",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    },
+    {
+      "algorithm": "unigram",
+      "split": "test",
+      "original_bytes": 890000000,
+      "original_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "decoded_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "compressed_sha256": "5891388ed090f1ad0c9a927a2bbe4a2fb5c60e9e500d3f4dbfe87fb4021bcd95",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    },
+    {
+      "algorithm": "unigram",
+      "split": "full",
+      "original_bytes": 1000000000,
+      "original_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "decoded_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "compressed_sha256": "c9201c93820f3601430f774f62a0a24f8d21a6874f7f010c2d8e3a6b6cc8d0db",
+      "checkpoint_sha256": "048f2e4f97a667fb65006b824b4d371b72298583517a2f36a5762965230300e5",
+      "files_identical": true,
+      "checksum_verified": true,
+      "encode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      },
+      "decode_git": {
+        "branch": "experiment/sentencepiece-tokenizers",
+        "commit": "9c782c6ffb266fb20954570e393e9a97d33d6d90",
+        "dirty": false
+      }
+    }
+  ],
+  "full_results_path": "experiments/tokenizers/enwik9_sp4096_20261019/results.json",
+  "full_results_sha256": "61bee6bc870519eff620b99de5fdda865401c2b6bbf0d3e2370a57685cbc572b"
+}
