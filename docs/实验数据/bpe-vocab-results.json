@@ -1,0 +1,1541 @@
+{
+  "baseline_4096": [
+    {
+      "actual_bpb": 1.2875722606741573,
+      "algorithm": "bpe",
+      "backbone_params": 3275212,
+      "best_validation_bpb": 1.3371507415213435,
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "compressed_bytes": 143242414,
+      "converged": true,
+      "decode_kb_per_second": 351.4915977053069,
+      "encode_kb_per_second": 269.129500348192,
+      "including_weights_bpb": 1.5091123146067416,
+      "inference_package_bytes": 24646331,
+      "measurement": "historical_old_implementation",
+      "original_bytes": 890000000,
+      "raw_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "split": "test",
+      "total_params": 6158796,
+      "training_epochs": 98,
+      "training_predicted_tokens": 3498492690,
+      "training_seconds": 6405.88716558693,
+      "training_source": "trained_from_scratch",
+      "training_stop_reason": "validation_plateau",
+      "verified": true,
+      "vocab_size": 4096
+    },
+    {
+      "actual_bpb": 1.274247608,
+      "algorithm": "bpe",
+      "backbone_params": 3275212,
+      "best_validation_bpb": 1.3371507415213435,
+      "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+      "compressed_bytes": 159280951,
+      "converged": true,
+      "decode_kb_per_second": 360.0754531796998,
+      "encode_kb_per_second": 258.32624820936815,
+      "including_weights_bpb": 1.471418256,
+      "inference_package_bytes": 24646331,
+      "measurement": "historical_old_implementation",
+      "original_bytes": 1000000000,
+      "raw_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "split": "full",
+      "total_params": 6158796,
+      "training_epochs": 98,
+      "training_predicted_tokens": 3498492690,
+      "training_seconds": 6405.88716558693,
+      "training_source": "trained_from_scratch",
+      "training_stop_reason": "validation_plateau",
+      "verified": true,
+      "vocab_size": 4096
+    },
+    {
+      "actual_bpb": 1.3983496,
+      "algorithm": "bpe",
+      "compressed_sha256": "b3edae0035239e1d7f1f0a02f54ace07c2ac7b159ca4fd5ec80753d070d5efc6",
+      "decode_kb_per_second": 411.7122955517841,
+      "decode_seconds": {
+        "max": 24.37899874080904,
+        "median": 24.288805819116533,
+        "min": 24.243154058931395,
+        "samples": [
+          24.37899874080904,
+          24.243154058931395,
+          24.288805819116533
+        ]
+      },
+      "encode_kb_per_second": 626.4543051710283,
+      "encode_seconds": {
+        "max": 16.03834300604649,
+        "median": 15.96285621705465,
+        "min": 15.944758428959176,
+        "samples": [
+          15.944758428959176,
+          16.03834300604649,
+          15.96285621705465
+        ]
+      },
+      "including_weights_bpb": 21.1154144,
+      "measurement": "historical_optimized_implementation",
+      "original_bytes": 10000000,
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "repeats": 3,
+      "split": "validation",
+      "variant": "optimized",
+      "verified": true,
+      "vocab_size": 4096
+    }
+  ],
+  "baseline_retested": false,
+  "complete": true,
+  "completed_at": 1792530213.6548736,
+  "environment": {
+    "conda_explicit": "# This file may be used to create an environment using:\n# $ conda create --name <env> --file <this file>\n# platform: linux-64\n@EXPLICIT\nhttps://repo.anaconda.com/pkgs/main/linux-64/_libgcc_mutex-0.1-main.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/_openmp_mutex-5.1-52_gnu.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/ca-certificates-2026.7.16-h06a4308_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/ld_impl_linux-64-2.44-h9e0c5a2_3.conda\nhttps://repo.anaconda.com/pkgs/main/noarch/tzdata-2026c-he532380_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/libgcc-15.2.0-h69a1729_8.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/libgcc-ng-15.2.0-h166f726_8.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/libstdcxx-15.2.0-h39759b7_8.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/libzlib-1.3.2-h47b2149_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/openssl-3.5.7-h1b28b03_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/pthread-stubs-0.3-h47b2149_2.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/xorg-xorgproto-2024.1-h47b2149_2.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/xz-5.8.2-h448239c_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/bzip2-1.0.8-h5eee18b_6.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/libffi-3.4.8-h06d3fd0_3.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/libuuid-1.41.5-h5eee18b_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/ncurses-6.5-h7934f7d_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/xorg-libxau-1.0.12-h9b100fa_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/xorg-libxdmcp-1.1.5-h9b100fa_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/zlib-1.3.2-h47b2149_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/libxcb-1.17.0-h9b100fa_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/readline-8.3-hc2a1206_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/sqlite-3.53.2-h795bf6d_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/xorg-libx11-1.8.12-h9b100fa_1.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/tk-8.6.15-h54e0aa7_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/python-3.10.16-he870216_1.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/packaging-26.2-py310h06a4308_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/setuptools-83.0.0-py310h06a4308_0.conda\nhttps://repo.anaconda.com/pkgs/main/linux-64/wheel-0.47.0-py310h06a4308_0.conda\nhttps://repo.anaconda.com/pkgs/main/noarch/pip-26.1.2-pyhc872135_0.conda\n",
+    "conda_prefix": "/home/ivc-17/anaconda3/envs/mamba3",
+    "cuda": "12.6",
+    "executable": "/home/ivc-17/anaconda3/envs/mamba3/bin/python",
+    "git": {
+      "branch": "experiment/bpe-vocab-scale",
+      "commit": "354de6bf4507ecb9c2fcbc5e2074f4e5b4edf470",
+      "dirty": false
+    },
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "gpu_driver": "NVIDIA GeForce RTX 3090, 580.178.04, 24576 MiB",
+    "packages": [
+      [
+        "Jinja2",
+        "3.1.6"
+      ],
+      [
+        "MarkupSafe",
+        "3.0.3"
+      ],
+      [
+        "PyYAML",
+        "6.0.3"
+      ],
+      [
+        "apache-tvm-ffi",
+        "0.1.9"
+      ],
+      [
+        "backports.strenum",
+        "1.3.1"
+      ],
+      [
+        "certifi",
+        "2026.7.22"
+      ],
+      [
+        "charset-normalizer",
+        "3.5.1"
+      ],
+      [
+        "cloudpickle",
+        "3.1.2"
+      ],
+      [
+        "constriction",
+        "0.4.2"
+      ],
+      [
+        "cuda-bindings",
+        "13.3.1"
+      ],
+      [
+        "cuda-core",
+        "1.0.1"
+      ],
+      [
+        "cuda-pathfinder",
+        "1.6.0"
+      ],
+      [
+        "cuda-python",
+        "13.3.1"
+      ],
+      [
+        "einops",
+        "0.8.2"
+      ],
+      [
+        "filelock",
+        "3.32.3"
+      ],
+      [
+        "fsspec",
+        "2026.7.0"
+      ],
+      [
+        "fvcore",
+        "0.1.5.post20221221"
+      ],
+      [
+        "hf-xet",
+        "1.6.0"
+      ],
+      [
+        "huggingface_hub",
+        "0.36.2"
+      ],
+      [
+        "idna",
+        "3.18"
+      ],
+      [
+        "iopath",
+        "0.1.10"
+      ],
+      [
+        "llvmlite",
+        "0.44.0"
+      ],
+      [
+        "mamba_ssm",
+        "2.3.1"
+      ],
+      [
+        "ml_dtypes",
+        "0.6.0"
+      ],
+      [
+        "mpmath",
+        "1.3.0"
+      ],
+      [
+        "networkx",
+        "3.4.2"
+      ],
+      [
+        "ninja",
+        "1.13.0"
+      ],
+      [
+        "numba",
+        "0.61.2"
+      ],
+      [
+        "numpy",
+        "2.2.6"
+      ],
+      [
+        "nvidia-cublas-cu12",
+        "12.6.4.1"
+      ],
+      [
+        "nvidia-cuda-cupti-cu12",
+        "12.6.80"
+      ],
+      [
+        "nvidia-cuda-nvdisasm",
+        "13.3.73"
+      ],
+      [
+        "nvidia-cuda-nvrtc-cu12",
+        "12.6.77"
+      ],
+      [
+        "nvidia-cuda-runtime-cu12",
+        "12.6.77"
+      ],
+      [
+        "nvidia-cudnn-cu12",
+        "9.10.2.21"
+      ],
+      [
+        "nvidia-cufft-cu12",
+        "11.3.0.4"
+      ],
+      [
+        "nvidia-cufile-cu12",
+        "1.11.1.6"
+      ],
+      [
+        "nvidia-curand-cu12",
+        "10.3.7.77"
+      ],
+      [
+        "nvidia-cusolver-cu12",
+        "11.7.1.2"
+      ],
+      [
+        "nvidia-cusparse-cu12",
+        "12.5.4.2"
+      ],
+      [
+        "nvidia-cusparselt-cu12",
+        "0.7.1"
+      ],
+      [
+        "nvidia-cutlass-dsl",
+        "4.4.2"
+      ],
+      [
+        "nvidia-cutlass-dsl-libs-base",
+        "4.4.2"
+      ],
+      [
+        "nvidia-nccl-cu12",
+        "2.27.5"
+      ],
+      [
+        "nvidia-nvjitlink-cu12",
+        "12.6.85"
+      ],
+      [
+        "nvidia-nvshmem-cu12",
+        "3.3.20"
+      ],
+      [
+        "nvidia-nvtx-cu12",
+        "12.6.77"
+      ],
+      [
+        "packaging",
+        "26.3"
+      ],
+      [
+        "pillow",
+        "12.3.0"
+      ],
+      [
+        "pip",
+        "26.2.1"
+      ],
+      [
+        "portalocker",
+        "4.1.0"
+      ],
+      [
+        "prettytable",
+        "3.18.0"
+      ],
+      [
+        "protobuf",
+        "6.33.6"
+      ],
+      [
+        "psutil",
+        "7.2.2"
+      ],
+      [
+        "quack-kernels",
+        "0.3.4"
+      ],
+      [
+        "regex",
+        "2026.7.19"
+      ],
+      [
+        "requests",
+        "2.34.2"
+      ],
+      [
+        "safetensors",
+        "0.8.0"
+      ],
+      [
+        "sentencepiece",
+        "0.2.1"
+      ],
+      [
+        "setuptools",
+        "84.0.0"
+      ],
+      [
+        "sympy",
+        "1.14.0"
+      ],
+      [
+        "tabulate",
+        "0.10.0"
+      ],
+      [
+        "termcolor",
+        "3.3.0"
+      ],
+      [
+        "tilelang",
+        "0.1.8"
+      ],
+      [
+        "tokenizers",
+        "0.22.2"
+      ],
+      [
+        "torch",
+        "2.9.1+cu126"
+      ],
+      [
+        "torch_c_dlpack_ext",
+        "0.1.5"
+      ],
+      [
+        "tqdm",
+        "4.70.0"
+      ],
+      [
+        "transformers",
+        "4.57.6"
+      ],
+      [
+        "triton",
+        "3.5.1"
+      ],
+      [
+        "typing_extensions",
+        "4.16.0"
+      ],
+      [
+        "urllib3",
+        "2.7.0"
+      ],
+      [
+        "wcwidth",
+        "0.8.2"
+      ],
+      [
+        "wheel",
+        "0.48.0"
+      ],
+      [
+        "yacs",
+        "0.1.8"
+      ],
+      [
+        "z3-solver",
+        "4.15.4.0"
+      ]
+    ],
+    "python": "3.10.16 (main, Dec 11 2024, 16:24:50) [GCC 11.2.0]",
+    "torch": "2.9.1+cu126"
+  },
+  "full_results_path": "experiments/tokenizers/bpe_vocab_scale_20261020/results.json",
+  "full_results_sha256": "8bd3b1a13288a30d6384df6e869cfba47f0e38be2077f3eb4dd51e6879d2fabe",
+  "git": {
+    "branch": "experiment/bpe-vocab-scale",
+    "commit": "354de6bf4507ecb9c2fcbc5e2074f4e5b4edf470",
+    "dirty": false
+  },
+  "historical_runtime": {
+    "constriction": "0.4.2",
+    "cuda": "12.6",
+    "cuda-bindings": "13.3.1",
+    "device_type": "cuda",
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "mamba_ssm": "2.3.1",
+    "numpy": "2.2.6",
+    "nvidia-cutlass-dsl": "4.4.2",
+    "protobuf": "6.33.6",
+    "quack-kernels": "0.3.4",
+    "sentencepiece": "0.2.1",
+    "token_adapter_version": 1,
+    "torch": "2.9.1+cu126",
+    "triton": "3.5.1"
+  },
+  "independent_verification": {
+    "checks": [
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v16384/bpe/preflight/repeat1/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v16384/bpe/preflight/repeat2/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v16384/bpe/preflight/repeat3/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 1000000000,
+        "record": "v16384/evaluation/bpe/full/single/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 890000000,
+        "record": "v16384/evaluation/bpe/test/single/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v16384/evaluation/bpe/validation/profile/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v16384/evaluation/bpe/validation/repeat1/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v16384/evaluation/bpe/validation/repeat2/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v16384/evaluation/bpe/validation/repeat3/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v8192/bpe/preflight/repeat1/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v8192/bpe/preflight/repeat2/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v8192/bpe/preflight/repeat3/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 1000000000,
+        "record": "v8192/evaluation/bpe/full/single/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 890000000,
+        "record": "v8192/evaluation/bpe/test/single/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v8192/evaluation/bpe/validation/profile/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v8192/evaluation/bpe/validation/repeat1/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v8192/evaluation/bpe/validation/repeat2/roundtrip.json",
+        "sha256_matches": true
+      },
+      {
+        "files_identical": true,
+        "num_bytes": 10000000,
+        "record": "v8192/evaluation/bpe/validation/repeat3/roundtrip.json",
+        "sha256_matches": true
+      }
+    ],
+    "verified_at": 1792545625.554859,
+    "verified_roundtrips": 18
+  },
+  "limitations": [
+    "4096 未同期复测",
+    "每个词表仅使用一个训练种子",
+    "全量历史速度来自优化前实现，仅作参考"
+  ],
+  "manifest": {
+    "algorithm": "bpe",
+    "block_size": 2048,
+    "code_sha256": "09791d9dc4baf12fdde5fe5ef0f251b0579bbd295b7fdb09044c7e443d388a56",
+    "codec_batch_size": 1024,
+    "created_at": 1792490649.2390916,
+    "created_git": {
+      "branch": "experiment/bpe-vocab-scale",
+      "commit": "354de6bf4507ecb9c2fcbc5e2074f4e5b4edf470",
+      "dirty": false
+    },
+    "device": "cuda:0",
+    "effective_batch_size": 72,
+    "experiment": "bpe-vocab-scale",
+    "historical_archives": {
+      "performance": {
+        "path": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/docs/实验数据/sentencepiece-performance.json",
+        "sha256": "f02664a0cced9ed2fbea4b6129737abab9736be76ab6f9ed47ffd3de85805cdc"
+      },
+      "results": {
+        "path": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/docs/实验数据/sentencepiece-results.json",
+        "sha256": "ca870c7886746db201ffbded8a427ee6e5b57c56e5c0b151fbf4368792cd7a9b"
+      }
+    },
+    "source": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/datasets/raw/enwik9",
+    "source_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+    "tokenizer_threads": 24,
+    "training_config": {
+      "betas": [
+        0.9,
+        0.99
+      ],
+      "checkpoint_seconds": 900,
+      "eps": 1e-08,
+      "max_grad_norm": 5.0,
+      "min_lr": 6e-06,
+      "peak_lr": 0.0006,
+      "progress_seconds": 43200,
+      "reduce_patience": 5,
+      "seed": 2026,
+      "stop_patience": 15,
+      "threshold_bpb": 0.001
+    },
+    "vocab_sizes": [
+      8192,
+      16384
+    ],
+    "workers": 0
+  },
+  "profiles": {
+    "16384": {
+      "checkpoint_sha256": "22f72c227a6f8fbbfa6688580c6ea506d43f54143318abb39f0ade38be96f05e",
+      "code_sha256": "09791d9dc4baf12fdde5fe5ef0f251b0579bbd295b7fdb09044c7e443d388a56",
+      "decode": {
+        "actual_bpb": 1.6493008,
+        "batch_size": 1024,
+        "checkpoint_sha256": "22f72c227a6f8fbbfa6688580c6ea506d43f54143318abb39f0ade38be96f05e",
+        "checksum_verified": true,
+        "compressed_bytes": 2061626,
+        "decode_kb_per_second": 190.96783026941105,
+        "decode_seconds": 52.36484064301476,
+        "decode_tokens_per_second": 56132.68299694712,
+        "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+        "external_verification_seconds": 0.015745310811325908,
+        "files_identical": true,
+        "git": {
+          "branch": "experiment/bpe-vocab-scale",
+          "commit": "354de6bf4507ecb9c2fcbc5e2074f4e5b4edf470",
+          "dirty": false
+        },
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "job_sha256": "15a4e4c6a16a52497d51e8bd2c760016f2362831b90fbf43bf2300b396a012b3",
+        "model_load_seconds": 4.242449187906459,
+        "num_bytes": 10000000,
+        "num_tokens": 2939379,
+        "operation": "decode",
+        "payload_bpb": 1.3774784,
+        "payload_bytes": 1721848,
+        "peak_allocated_bytes": 1285409792,
+        "peak_reserved_bytes": 1530920960,
+        "phases_seconds": {
+          "detokenize": 0.40180721785873175,
+          "framing_and_io": 0.0029020910151302814,
+          "other": 0.02800669288262725,
+          "predict_and_transfer": 24.920414510648698,
+          "probability_selection": 0.02122147916816175,
+          "quantize_and_range": 26.990245069377124,
+          "state_reset": 0.00024358206428587437
+        },
+        "prediction_phases_seconds": {
+          "download": 15.0175991486758,
+          "model_probability": 9.581456226063892,
+          "upload": 0.0882475592661649
+        },
+        "process_id": 2850529,
+        "process_seconds": 61.23725387104787,
+        "runtime": {
+          "constriction": "0.4.2",
+          "cuda": "12.6",
+          "cuda-bindings": "13.3.1",
+          "device_type": "cuda",
+          "gpu": "NVIDIA GeForce RTX 3090",
+          "mamba_ssm": "2.3.1",
+          "numpy": "2.2.6",
+          "nvidia-cutlass-dsl": "4.4.2",
+          "protobuf": "6.33.6",
+          "quack-kernels": "0.3.4",
+          "sentencepiece": "0.2.1",
+          "token_adapter_version": 1,
+          "torch": "2.9.1+cu126",
+          "triton": "3.5.1"
+        },
+        "vocab_size": 16384,
+        "warmup_seconds": 2.5612056930549443
+      },
+      "decoded": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/experiments/tokenizers/bpe_vocab_scale_20261020/v16384/evaluation/bpe/validation/profile/decoded.bin",
+      "encode": {
+        "actual_bpb": 1.6493008,
+        "batch_size": 1024,
+        "checkpoint_sha256": "22f72c227a6f8fbbfa6688580c6ea506d43f54143318abb39f0ade38be96f05e",
+        "compressed_bytes": 2061626,
+        "compressed_sha256": "8499d5621049ebe96e81a75b1afa8c2a26d79faeca3880cb8aff2d4bed81910a",
+        "encode_kb_per_second": 340.0665141732994,
+        "encode_seconds": 29.406012010062113,
+        "encode_tokens_per_second": 99958.43703641985,
+        "floating_zero_probability_symbols": 0,
+        "git": {
+          "branch": "experiment/bpe-vocab-scale",
+          "commit": "354de6bf4507ecb9c2fcbc5e2074f4e5b4edf470",
+          "dirty": false
+        },
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "job_sha256": "e3648c59403f6876ab26adbd0bf7abe439ae991ee390563d9d86147109f79875",
+        "model_load_seconds": 4.198441121028736,
+        "num_bytes": 10000000,
+        "num_tokens": 2939379,
+        "operation": "encode",
+        "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+        "payload_bpb": 1.3774784,
+        "payload_bytes": 1721848,
+        "peak_allocated_bytes": 1285409792,
+        "peak_reserved_bytes": 1530920960,
+        "phases_seconds": {
+          "diagnostics": 0.15079508209601045,
+          "framing_and_io": 0.006231489824131131,
+          "original_hash": 0.005640322808176279,
+          "other": 0.045550612499937415,
+          "predict_and_transfer": 0.5009761627297848,
+          "probability_selection": 0.04893388436175883,
+          "probability_validation": 0.0017622055020183325,
+          "quantize_and_range": 27.75344808329828,
+          "restore_and_hash": 0.3419369151815772,
+          "state_reset": 0.00023383786901831627,
+          "tokenize": 0.5505034138914198
+        },
+        "prediction_phases_seconds": {
+          "download": 16.937777576208127,
+          "model_probability": 9.578839717984195,
+          "upload": 0.07861526399478318
+        },
+        "process_id": 2846406,
+        "process_seconds": 38.2376514240168,
+        "runtime": {
+          "constriction": "0.4.2",
+          "cuda": "12.6",
+          "cuda-bindings": "13.3.1",
+          "device_type": "cuda",
+          "gpu": "NVIDIA GeForce RTX 3090",
+          "mamba_ssm": "2.3.1",
+          "numpy": "2.2.6",
+          "nvidia-cutlass-dsl": "4.4.2",
+          "protobuf": "6.33.6",
+          "quack-kernels": "0.3.4",
+          "sentencepiece": "0.2.1",
+          "token_adapter_version": 1,
+          "torch": "2.9.1+cu126",
+          "triton": "3.5.1"
+        },
+        "theoretical_nll_bpb": 1.3798294359045753,
+        "tokenizer_sha256": "c986b75d4f42b0e8ca64be4695d588e72a0e716dd8084409f6bf7d4c02801d53",
+        "vocab_size": 16384,
+        "warmup_seconds": 2.6121190111152828
+      },
+      "including_weights_bpb": 49.048772,
+      "inference_package_bytes": 59249339,
+      "packed": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/experiments/tokenizers/bpe_vocab_scale_20261020/v16384/evaluation/bpe/validation/profile/compressed.m3rc",
+      "profile": true,
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "repeat": null,
+      "split": "validation",
+      "verified": true,
+      "vocab_size": 16384
+    },
+    "8192": {
+      "checkpoint_sha256": "33946eaa864b44d3b67b07a3f7ddce7167d187cfb60043dcc2883ff4059ab980",
+      "code_sha256": "09791d9dc4baf12fdde5fe5ef0f251b0579bbd295b7fdb09044c7e443d388a56",
+      "decode": {
+        "actual_bpb": 1.4822088,
+        "batch_size": 1024,
+        "checkpoint_sha256": "33946eaa864b44d3b67b07a3f7ddce7167d187cfb60043dcc2883ff4059ab980",
+        "checksum_verified": true,
+        "compressed_bytes": 1852761,
+        "decode_kb_per_second": 298.8534453121202,
+        "decode_seconds": 33.46121705090627,
+        "decode_tokens_per_second": 96518.93399712812,
+        "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+        "external_verification_seconds": 0.015607808018103242,
+        "files_identical": true,
+        "git": {
+          "branch": "experiment/bpe-vocab-scale",
+          "commit": "354de6bf4507ecb9c2fcbc5e2074f4e5b4edf470",
+          "dirty": false
+        },
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "job_sha256": "aee6d9f6988a125ea92110cf379d9bc52136a1a0d826181eef4997444d8ba0ae",
+        "model_load_seconds": 4.247397609055042,
+        "num_bytes": 10000000,
+        "num_tokens": 3229641,
+        "operation": "decode",
+        "payload_bpb": 1.351152,
+        "payload_bytes": 1688940,
+        "peak_allocated_bytes": 1325496320,
+        "peak_reserved_bytes": 1491075072,
+        "phases_seconds": {
+          "detokenize": 0.4219495828729123,
+          "framing_and_io": 0.0037170329596847296,
+          "other": 0.019193507730960846,
+          "predict_and_transfer": 17.77260139863938,
+          "probability_selection": 0.016872444422915578,
+          "quantize_and_range": 15.226635640254244,
+          "state_reset": 0.0002474440261721611
+        },
+        "prediction_phases_seconds": {
+          "download": 8.409750759601593,
+          "model_probability": 9.127432347042486,
+          "upload": 0.06645562429912388
+        },
+        "process_id": 2842064,
+        "process_seconds": 42.20641812705435,
+        "runtime": {
+          "constriction": "0.4.2",
+          "cuda": "12.6",
+          "cuda-bindings": "13.3.1",
+          "device_type": "cuda",
+          "gpu": "NVIDIA GeForce RTX 3090",
+          "mamba_ssm": "2.3.1",
+          "numpy": "2.2.6",
+          "nvidia-cutlass-dsl": "4.4.2",
+          "protobuf": "6.33.6",
+          "quack-kernels": "0.3.4",
+          "sentencepiece": "0.2.1",
+          "token_adapter_version": 1,
+          "torch": "2.9.1+cu126",
+          "triton": "3.5.1"
+        },
+        "vocab_size": 8192,
+        "warmup_seconds": 2.5114429690875113
+      },
+      "decoded": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/experiments/tokenizers/bpe_vocab_scale_20261020/v8192/evaluation/bpe/validation/profile/decoded.bin",
+      "encode": {
+        "actual_bpb": 1.4822088,
+        "batch_size": 1024,
+        "checkpoint_sha256": "33946eaa864b44d3b67b07a3f7ddce7167d187cfb60043dcc2883ff4059ab980",
+        "compressed_bytes": 1852761,
+        "compressed_sha256": "9d914cb446f7ab8bda42ddf2a4eebaddc310db9da007acb062dd684ff6368d5f",
+        "encode_kb_per_second": 511.39597789039726,
+        "encode_seconds": 19.55431882990524,
+        "encode_tokens_per_second": 165162.54174299206,
+        "floating_zero_probability_symbols": 0,
+        "git": {
+          "branch": "experiment/bpe-vocab-scale",
+          "commit": "354de6bf4507ecb9c2fcbc5e2074f4e5b4edf470",
+          "dirty": false
+        },
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "job_sha256": "9ee9dfdbb4dbaf111610777f4f3282ce52161329c5e55d71df22cd2c96a4fe9d",
+        "model_load_seconds": 4.251313582994044,
+        "num_bytes": 10000000,
+        "num_tokens": 3229641,
+        "operation": "encode",
+        "original_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+        "payload_bpb": 1.351152,
+        "payload_bytes": 1688940,
+        "peak_allocated_bytes": 1325496320,
+        "peak_reserved_bytes": 1491075072,
+        "phases_seconds": {
+          "diagnostics": 0.13922754884697497,
+          "framing_and_io": 0.0057057710364460945,
+          "original_hash": 0.005541512044146657,
+          "other": 0.03943852172233164,
+          "predict_and_transfer": 3.185252097202465,
+          "probability_selection": 0.04129645577631891,
+          "probability_validation": 0.0011247843503952026,
+          "quantize_and_range": 15.206462133675814,
+          "restore_and_hash": 0.37268097582273185,
+          "state_reset": 0.00024395319633185863,
+          "tokenize": 0.5573450762312859
+        },
+        "prediction_phases_seconds": {
+          "download": 9.266326656103148,
+          "model_probability": 9.125118565082676,
+          "upload": 0.05833577600913133
+        },
+        "process_id": 2838937,
+        "process_seconds": 28.373366642044857,
+        "runtime": {
+          "constriction": "0.4.2",
+          "cuda": "12.6",
+          "cuda-bindings": "13.3.1",
+          "device_type": "cuda",
+          "gpu": "NVIDIA GeForce RTX 3090",
+          "mamba_ssm": "2.3.1",
+          "numpy": "2.2.6",
+          "nvidia-cutlass-dsl": "4.4.2",
+          "protobuf": "6.33.6",
+          "quack-kernels": "0.3.4",
+          "sentencepiece": "0.2.1",
+          "token_adapter_version": 1,
+          "torch": "2.9.1+cu126",
+          "triton": "3.5.1"
+        },
+        "theoretical_nll_bpb": 1.3526353433079108,
+        "tokenizer_sha256": "61581e1125b68c75839ea6c66f0a32c3ab07b5c6af57e896e205025bf07f4814",
+        "vocab_size": 8192,
+        "warmup_seconds": 2.5992067081388086
+      },
+      "including_weights_bpb": 30.4267424,
+      "inference_package_bytes": 36180667,
+      "packed": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/experiments/tokenizers/bpe_vocab_scale_20261020/v8192/evaluation/bpe/validation/profile/compressed.m3rc",
+      "profile": true,
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "repeat": null,
+      "split": "validation",
+      "verified": true,
+      "vocab_size": 8192
+    }
+  },
+  "results": [
+    {
+      "actual_bpb": 1.4822088,
+      "algorithm": "bpe",
+      "best_validation_bpb": 1.3526423308141573,
+      "bpb_reduction_percent_vs_4096": -5.997012478138508,
+      "bytes_per_token": 3.096319374196699,
+      "checkpoint_sha256": "33946eaa864b44d3b67b07a3f7ddce7167d187cfb60043dcc2883ff4059ab980",
+      "compressed_bytes": 1852761,
+      "compressed_sha256": "9d914cb446f7ab8bda42ddf2a4eebaddc310db9da007acb062dd684ff6368d5f",
+      "decode_kb_per_second": 297.9493566617145,
+      "decode_model_load_seconds": [
+        4.24673737003468,
+        4.26255950005725,
+        4.3322484500240535
+      ],
+      "decode_peak_allocated_bytes": 1325496320,
+      "decode_peak_reserved_bytes": 1491075072,
+      "decode_process_seconds": [
+        42.53826747299172,
+        42.08912476408295,
+        42.42016880703159
+      ],
+      "decode_seconds": {
+        "max": 33.6477653440088,
+        "median": 33.56275077094324,
+        "min": 33.31310537317768,
+        "samples": [
+          33.6477653440088,
+          33.31310537317768,
+          33.56275077094324
+        ]
+      },
+      "decode_throughput_change_percent_vs_4096": -27.63165932112922,
+      "decode_warmup_seconds": [
+        2.614963351050392,
+        2.5423386190086603,
+        2.547063312958926
+      ],
+      "effective_batch_size": 72,
+      "encode_kb_per_second": 524.0586568663483,
+      "encode_model_load_seconds": [
+        4.230244704056531,
+        4.383272926090285,
+        4.1225092969834805
+      ],
+      "encode_peak_allocated_bytes": 1325496320,
+      "encode_peak_reserved_bytes": 1491075072,
+      "encode_process_seconds": [
+        27.688211808213964,
+        28.18078931909986,
+        27.790846619056538
+      ],
+      "encode_seconds": {
+        "max": 19.227858528029174,
+        "median": 19.081833434058353,
+        "min": 18.951642025029287,
+        "samples": [
+          18.951642025029287,
+          19.227858528029174,
+          19.081833434058353
+        ]
+      },
+      "encode_throughput_change_percent_vs_4096": -16.345270111397024,
+      "encode_warmup_seconds": [
+        2.53411453589797,
+        2.6057682160753757,
+        2.6241415170952678
+      ],
+      "including_weights_bpb": 30.4267424,
+      "inference_package_bytes": 36180667,
+      "micro_batch_size": 36,
+      "num_tokens": 3229641,
+      "original_bytes": 10000000,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 9042380
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "repeats": 3,
+      "runtime": {
+        "constriction": "0.4.2",
+        "cuda": "12.6",
+        "cuda-bindings": "13.3.1",
+        "device_type": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "mamba_ssm": "2.3.1",
+        "numpy": "2.2.6",
+        "nvidia-cutlass-dsl": "4.4.2",
+        "protobuf": "6.33.6",
+        "quack-kernels": "0.3.4",
+        "sentencepiece": "0.2.1",
+        "token_adapter_version": 1,
+        "torch": "2.9.1+cu126",
+        "triton": "3.5.1"
+      },
+      "runtime_matches_historical": true,
+      "speed_comparison": "historical_same_runtime",
+      "split": "validation",
+      "training_epochs": 79,
+      "training_seconds": 5465.721245720983,
+      "verified": true,
+      "vocab_size": 8192
+    },
+    {
+      "actual_bpb": 1.312254795505618,
+      "algorithm": "bpe",
+      "best_validation_bpb": 1.3526423308141573,
+      "bpb_reduction_percent_vs_4096": -1.9169824937465885,
+      "bytes_per_token": 2.942368732789726,
+      "checkpoint_sha256": "33946eaa864b44d3b67b07a3f7ddce7167d187cfb60043dcc2883ff4059ab980",
+      "compressed_bytes": 145988346,
+      "compressed_sha256": "e845b5766580c4f88a0a5e392488f5d1660edd2e837323ca41d98711cf9d6266",
+      "decode_kb_per_second": 289.63800075258496,
+      "decode_model_load_seconds": [
+        4.236079082125798
+      ],
+      "decode_peak_allocated_bytes": 1082676736,
+      "decode_peak_reserved_bytes": 1243611136,
+      "decode_process_seconds": [
+        3083.2968606050126
+      ],
+      "decode_seconds": {
+        "max": 3072.801212850027,
+        "median": 3072.801212850027,
+        "min": 3072.801212850027,
+        "samples": [
+          3072.801212850027
+        ]
+      },
+      "decode_throughput_change_percent_vs_4096": null,
+      "decode_warmup_seconds": [
+        2.4553851359523833
+      ],
+      "effective_batch_size": 72,
+      "encode_kb_per_second": 509.87096392283,
+      "encode_model_load_seconds": [
+        4.318409064086154
+      ],
+      "encode_peak_allocated_bytes": 1082676736,
+      "encode_peak_reserved_bytes": 1243611136,
+      "encode_process_seconds": [
+        1754.933865990024
+      ],
+      "encode_seconds": {
+        "max": 1745.5396815550048,
+        "median": 1745.5396815550048,
+        "min": 1745.5396815550048,
+        "samples": [
+          1745.5396815550048
+        ]
+      },
+      "encode_throughput_change_percent_vs_4096": null,
+      "encode_warmup_seconds": [
+        2.598339576041326
+      ],
+      "including_weights_bpb": 1.6374742741573034,
+      "inference_package_bytes": 36180667,
+      "micro_batch_size": 36,
+      "num_tokens": 302477385,
+      "original_bytes": 890000000,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 9042380
+      },
+      "raw_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "repeats": 1,
+      "runtime": {
+        "constriction": "0.4.2",
+        "cuda": "12.6",
+        "cuda-bindings": "13.3.1",
+        "device_type": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "mamba_ssm": "2.3.1",
+        "numpy": "2.2.6",
+        "nvidia-cutlass-dsl": "4.4.2",
+        "protobuf": "6.33.6",
+        "quack-kernels": "0.3.4",
+        "sentencepiece": "0.2.1",
+        "token_adapter_version": 1,
+        "torch": "2.9.1+cu126",
+        "triton": "3.5.1"
+      },
+      "runtime_matches_historical": true,
+      "speed_comparison": "reference_only",
+      "split": "test",
+      "training_epochs": 79,
+      "training_seconds": 5465.721245720983,
+      "verified": true,
+      "vocab_size": 8192
+    },
+    {
+      "actual_bpb": 1.295140568,
+      "algorithm": "bpe",
+      "best_validation_bpb": 1.3526423308141573,
+      "bpb_reduction_percent_vs_4096": -1.6396310943673331,
+      "bytes_per_token": 2.9625115990846327,
+      "checkpoint_sha256": "33946eaa864b44d3b67b07a3f7ddce7167d187cfb60043dcc2883ff4059ab980",
+      "compressed_bytes": 161892571,
+      "compressed_sha256": "ead5bb7a171dc646eec0a962b747e656f238da0fc570718073fa6efcfb27c5e1",
+      "decode_kb_per_second": 289.5003105641582,
+      "decode_model_load_seconds": [
+        4.286277307197452
+      ],
+      "decode_peak_allocated_bytes": 1657551360,
+      "decode_peak_reserved_bytes": 1891631104,
+      "decode_process_seconds": [
+        3465.0100880938116
+      ],
+      "decode_seconds": {
+        "max": 3454.227727947058,
+        "median": 3454.227727947058,
+        "min": 3454.227727947058,
+        "samples": [
+          3454.227727947058
+        ]
+      },
+      "decode_throughput_change_percent_vs_4096": null,
+      "decode_warmup_seconds": [
+        2.461564294062555
+      ],
+      "effective_batch_size": 72,
+      "encode_kb_per_second": 514.4536115909053,
+      "encode_model_load_seconds": [
+        4.0709846168756485
+      ],
+      "encode_peak_allocated_bytes": 1657551360,
+      "encode_peak_reserved_bytes": 1891631104,
+      "encode_process_seconds": [
+        1952.9193360758945
+      ],
+      "encode_seconds": {
+        "max": 1943.8098547069822,
+        "median": 1943.8098547069822,
+        "min": 1943.8098547069822,
+        "samples": [
+          1943.8098547069822
+        ]
+      },
+      "encode_throughput_change_percent_vs_4096": null,
+      "encode_warmup_seconds": [
+        2.4815109509509057
+      ],
+      "including_weights_bpb": 1.584585904,
+      "inference_package_bytes": 36180667,
+      "micro_batch_size": 36,
+      "num_tokens": 337551421,
+      "original_bytes": 1000000000,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 9042380
+      },
+      "raw_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "repeats": 1,
+      "runtime": {
+        "constriction": "0.4.2",
+        "cuda": "12.6",
+        "cuda-bindings": "13.3.1",
+        "device_type": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "mamba_ssm": "2.3.1",
+        "numpy": "2.2.6",
+        "nvidia-cutlass-dsl": "4.4.2",
+        "protobuf": "6.33.6",
+        "quack-kernels": "0.3.4",
+        "sentencepiece": "0.2.1",
+        "token_adapter_version": 1,
+        "torch": "2.9.1+cu126",
+        "triton": "3.5.1"
+      },
+      "runtime_matches_historical": true,
+      "speed_comparison": "reference_only",
+      "split": "full",
+      "training_epochs": 79,
+      "training_seconds": 5465.721245720983,
+      "verified": true,
+      "vocab_size": 8192
+    },
+    {
+      "actual_bpb": 1.6493008,
+      "algorithm": "bpe",
+      "best_validation_bpb": 1.3798370050090438,
+      "bpb_reduction_percent_vs_4096": -17.94624176958324,
+      "bytes_per_token": 3.4020791466496836,
+      "checkpoint_sha256": "22f72c227a6f8fbbfa6688580c6ea506d43f54143318abb39f0ade38be96f05e",
+      "compressed_bytes": 2061626,
+      "compressed_sha256": "8499d5621049ebe96e81a75b1afa8c2a26d79faeca3880cb8aff2d4bed81910a",
+      "decode_kb_per_second": 190.59007062444817,
+      "decode_model_load_seconds": [
+        4.272484380053356,
+        4.248432396212593,
+        4.331031768815592
+      ],
+      "decode_peak_allocated_bytes": 1285409792,
+      "decode_peak_reserved_bytes": 1530920960,
+      "decode_process_seconds": [
+        61.26973753189668,
+        61.64930642815307,
+        61.32904695579782
+      ],
+      "decode_seconds": {
+        "max": 52.77098893094808,
+        "median": 52.46863053902052,
+        "min": 52.33044334105216,
+        "samples": [
+          52.33044334105216,
+          52.77098893094808,
+          52.46863053902052
+        ]
+      },
+      "decode_throughput_change_percent_vs_4096": -53.707947835510716,
+      "decode_warmup_seconds": [
+        2.592283991863951,
+        2.634437972214073,
+        2.5562901189550757
+      ],
+      "effective_batch_size": 72,
+      "encode_kb_per_second": 342.4531351623111,
+      "encode_model_load_seconds": [
+        4.444302594056353,
+        4.342385974014178,
+        4.419106586836278
+      ],
+      "encode_peak_allocated_bytes": 1285409792,
+      "encode_peak_reserved_bytes": 1530920960,
+      "encode_process_seconds": [
+        38.29193200310692,
+        38.10468720388599,
+        38.25310791400261
+      ],
+      "encode_seconds": {
+        "max": 29.212839416926727,
+        "median": 29.201075923163444,
+        "min": 29.188256232999265,
+        "samples": [
+          29.212839416926727,
+          29.201075923163444,
+          29.188256232999265
+        ]
+      },
+      "encode_throughput_change_percent_vs_4096": -45.334698423244454,
+      "encode_warmup_seconds": [
+        2.6432041469961405,
+        2.5913094480056316,
+        2.5839946230407804
+      ],
+      "including_weights_bpb": 49.048772,
+      "inference_package_bytes": 59249339,
+      "micro_batch_size": 24,
+      "num_tokens": 2939379,
+      "original_bytes": 10000000,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 14809548
+      },
+      "raw_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+      "repeats": 3,
+      "runtime": {
+        "constriction": "0.4.2",
+        "cuda": "12.6",
+        "cuda-bindings": "13.3.1",
+        "device_type": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "mamba_ssm": "2.3.1",
+        "numpy": "2.2.6",
+        "nvidia-cutlass-dsl": "4.4.2",
+        "protobuf": "6.33.6",
+        "quack-kernels": "0.3.4",
+        "sentencepiece": "0.2.1",
+        "token_adapter_version": 1,
+        "torch": "2.9.1+cu126",
+        "triton": "3.5.1"
+      },
+      "runtime_matches_historical": true,
+      "speed_comparison": "historical_same_runtime",
+      "split": "validation",
+      "training_epochs": 66,
+      "training_seconds": 5798.911183401011,
+      "verified": true,
+      "vocab_size": 16384
+    },
+    {
+      "actual_bpb": 1.3435273258426967,
+      "algorithm": "bpe",
+      "best_validation_bpb": 1.3798370050090438,
+      "bpb_reduction_percent_vs_4096": -4.345780573064073,
+      "bytes_per_token": 3.213579695211175,
+      "checkpoint_sha256": "22f72c227a6f8fbbfa6688580c6ea506d43f54143318abb39f0ade38be96f05e",
+      "compressed_bytes": 149467415,
+      "compressed_sha256": "1c08940b8ebebf67709bb40bc13ef06c691ad17486411d1cf40ac8920e678395",
+      "decode_kb_per_second": 182.88370015649204,
+      "decode_model_load_seconds": [
+        4.034369432134554
+      ],
+      "decode_peak_allocated_bytes": 1003561984,
+      "decode_peak_reserved_bytes": 1201668096,
+      "decode_process_seconds": [
+        4876.647353636101
+      ],
+      "decode_seconds": {
+        "max": 4866.480715550017,
+        "median": 4866.480715550017,
+        "min": 4866.480715550017,
+        "samples": [
+          4866.480715550017
+        ]
+      },
+      "decode_throughput_change_percent_vs_4096": null,
+      "decode_warmup_seconds": [
+        2.4311723290011287
+      ],
+      "effective_batch_size": 72,
+      "encode_kb_per_second": 326.7914899279178,
+      "encode_model_load_seconds": [
+        4.245602349052206
+      ],
+      "encode_peak_allocated_bytes": 1003561984,
+      "encode_peak_reserved_bytes": 1201668096,
+      "encode_process_seconds": [
+        2732.6421036280226
+      ],
+      "encode_seconds": {
+        "max": 2723.449133257149,
+        "median": 2723.449133257149,
+        "min": 2723.449133257149,
+        "samples": [
+          2723.449133257149
+        ]
+      },
+      "encode_throughput_change_percent_vs_4096": null,
+      "encode_warmup_seconds": [
+        2.453194751171395
+      ],
+      "including_weights_bpb": 1.8761056539325842,
+      "inference_package_bytes": 59249339,
+      "micro_batch_size": 24,
+      "num_tokens": 276949721,
+      "original_bytes": 890000000,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 14809548
+      },
+      "raw_sha256": "90f100cb03301d2537307395f0a101f5a417177dd01042ee738d56d2b17b9b02",
+      "repeats": 1,
+      "runtime": {
+        "constriction": "0.4.2",
+        "cuda": "12.6",
+        "cuda-bindings": "13.3.1",
+        "device_type": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "mamba_ssm": "2.3.1",
+        "numpy": "2.2.6",
+        "nvidia-cutlass-dsl": "4.4.2",
+        "protobuf": "6.33.6",
+        "quack-kernels": "0.3.4",
+        "sentencepiece": "0.2.1",
+        "token_adapter_version": 1,
+        "torch": "2.9.1+cu126",
+        "triton": "3.5.1"
+      },
+      "runtime_matches_historical": true,
+      "speed_comparison": "reference_only",
+      "split": "test",
+      "training_epochs": 66,
+      "training_seconds": 5798.911183401011,
+      "verified": true,
+      "vocab_size": 16384
+    },
+    {
+      "actual_bpb": 1.320730048,
+      "algorithm": "bpe",
+      "best_validation_bpb": 1.3798370050090438,
+      "bpb_reduction_percent_vs_4096": -3.6478341970723083,
+      "bytes_per_token": 3.237193278971686,
+      "checkpoint_sha256": "22f72c227a6f8fbbfa6688580c6ea506d43f54143318abb39f0ade38be96f05e",
+      "compressed_bytes": 165091256,
+      "compressed_sha256": "2169c6b7c46652c35cd0f971c5c691567eea1652d4e40a161a84bc7c96ff9b76",
+      "decode_kb_per_second": 184.04838484027457,
+      "decode_model_load_seconds": [
+        4.199380117934197
+      ],
+      "decode_peak_allocated_bytes": 1201527808,
+      "decode_peak_reserved_bytes": 1430257664,
+      "decode_process_seconds": [
+        5444.133033654885
+      ],
+      "decode_seconds": {
+        "max": 5433.353848053841,
+        "median": 5433.353848053841,
+        "min": 5433.353848053841,
+        "samples": [
+          5433.353848053841
+        ]
+      },
+      "decode_throughput_change_percent_vs_4096": null,
+      "decode_warmup_seconds": [
+        2.4824313148856163
+      ],
+      "effective_batch_size": 72,
+      "encode_kb_per_second": 328.4727801134944,
+      "encode_model_load_seconds": [
+        4.107464127941057
+      ],
+      "encode_peak_allocated_bytes": 1201527808,
+      "encode_peak_reserved_bytes": 1430257664,
+      "encode_process_seconds": [
+        3053.6283556059934
+      ],
+      "encode_seconds": {
+        "max": 3044.392292276025,
+        "median": 3044.392292276025,
+        "min": 3044.392292276025,
+        "samples": [
+          3044.392292276025
+        ]
+      },
+      "encode_throughput_change_percent_vs_4096": null,
+      "encode_warmup_seconds": [
+        2.567083832109347
+      ],
+      "including_weights_bpb": 1.79472476,
+      "inference_package_bytes": 59249339,
+      "micro_batch_size": 24,
+      "num_tokens": 308909575,
+      "original_bytes": 1000000000,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 14809548
+      },
+      "raw_sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "repeats": 1,
+      "runtime": {
+        "constriction": "0.4.2",
+        "cuda": "12.6",
+        "cuda-bindings": "13.3.1",
+        "device_type": "cuda",
+        "gpu": "NVIDIA GeForce RTX 3090",
+        "mamba_ssm": "2.3.1",
+        "numpy": "2.2.6",
+        "nvidia-cutlass-dsl": "4.4.2",
+        "protobuf": "6.33.6",
+        "quack-kernels": "0.3.4",
+        "sentencepiece": "0.2.1",
+        "token_adapter_version": 1,
+        "torch": "2.9.1+cu126",
+        "triton": "3.5.1"
+      },
+      "runtime_matches_historical": true,
+      "speed_comparison": "reference_only",
+      "split": "full",
+      "training_epochs": 66,
+      "training_seconds": 5798.911183401011,
+      "verified": true,
+      "vocab_size": 16384
+    }
+  ],
+  "training": {
+    "16384": {
+      "bad_epochs": 15,
+      "batch_size": 72,
+      "best_bpb": 1.3798370050090438,
+      "best_epoch": 51,
+      "converged": true,
+      "effective_batch_size": 72,
+      "elapsed_seconds": 5798.911183401011,
+      "epoch": 66,
+      "fingerprint": {
+        "code": "09791d9dc4baf12fdde5fe5ef0f251b0579bbd295b7fdb09044c7e443d388a56",
+        "manifest": "a4fd2bcd068658f939cce89e04f4d20d66a854b051361275cff8079391a2c2ba",
+        "tokenizer.model": "c986b75d4f42b0e8ca64be4695d588e72a0e716dd8084409f6bf7d4c02801d53",
+        "train.tokens": "ab8ce4a04fd78ce55ba9b320ac87d3b4ca5346436f3d0e8112edd32aaf354248",
+        "validation.tokens": "5a068194f889ef0b5a14e03978b95f451bade44f046c0a552d9f9c1da30f07aa"
+      },
+      "learning_rate": 3.75e-05,
+      "micro_batch_size": 24,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 14809548
+      },
+      "position": 0,
+      "predicted_tokens_seen": 1914416262,
+      "stop_reason": "validation_plateau",
+      "training_config": {
+        "betas": [
+          0.9,
+          0.99
+        ],
+        "checkpoint_seconds": 900,
+        "eps": 1e-08,
+        "max_grad_norm": 5.0,
+        "min_lr": 6e-06,
+        "peak_lr": 0.0006,
+        "progress_seconds": 43200,
+        "reduce_patience": 5,
+        "seed": 2026,
+        "stop_patience": 15,
+        "threshold_bpb": 0.001
+      },
+      "updates": 13002,
+      "vocab_size": 16384,
+      "workers": 0
+    },
+    "8192": {
+      "bad_epochs": 15,
+      "batch_size": 72,
+      "best_bpb": 1.3526423308141573,
+      "best_epoch": 64,
+      "converged": true,
+      "effective_batch_size": 72,
+      "elapsed_seconds": 5465.721245720983,
+      "epoch": 79,
+      "fingerprint": {
+        "code": "09791d9dc4baf12fdde5fe5ef0f251b0579bbd295b7fdb09044c7e443d388a56",
+        "manifest": "c70c7694f6bc67799b8658445d4d71b9c30f1e989b4284f5940c7d1c505fdb76",
+        "tokenizer.model": "61581e1125b68c75839ea6c66f0a32c3ab07b5c6af57e896e205025bf07f4814",
+        "train.tokens": "da7c33da00397e2161266aacd5f7bbadd8ed6ed68edcd1c1d838b1238e8c5a49",
+        "validation.tokens": "f0eb98ace820d5707c77b8c7feb2a0b975cabf24d820335c6a48061777909e33"
+      },
+      "learning_rate": 1.875e-05,
+      "micro_batch_size": 36,
+      "parameter_counts": {
+        "backbone_trainable_params": 3275212,
+        "total_trainable_params": 9042380
+      },
+      "position": 0,
+      "predicted_tokens_seen": 2514478913,
+      "stop_reason": "validation_plateau",
+      "training_config": {
+        "betas": [
+          0.9,
+          0.99
+        ],
+        "checkpoint_seconds": 900,
+        "eps": 1e-08,
+        "max_grad_norm": 5.0,
+        "min_lr": 6e-06,
+        "peak_lr": 0.0006,
+        "progress_seconds": 43200,
+        "reduce_patience": 5,
+        "seed": 2026,
+        "stop_patience": 15,
+        "threshold_bpb": 0.001
+      },
+      "updates": 17064,
+      "vocab_size": 8192,
+      "workers": 0
+    }
+  }
+}
