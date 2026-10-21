@@ -1,0 +1,15 @@
+[package]
+name = "mamba_integer_range"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+constriction = "=0.4.2"
+
+[profile.release]
+lto = true
+codegen-units = 1

@@ -70,14 +70,24 @@ class BufferedMambaStep:
 class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
     profile = c.BATCHED_V5_PROFILE
 
-    def __init__(self, *args, use_graph=True, check_probabilities=False, **kwargs):
+    def __init__(self, *args, use_graph=True, check_probabilities=False,
+                 probability_transfer="fp32", **kwargs):
+        if probability_transfer not in ("fp32", "fp16", "gpu_int"):
+            raise ValueError("probability_transfer must be fp32, fp16 or gpu_int")
         super().__init__(*args, **kwargs)
+        self._probability_transfer = probability_transfer
+        self.probability_transfer_bytes = 0
         self.use_graph = use_graph
-        self.check_probabilities = check_probabilities
+        self.check_probabilities = check_probabilities or probability_transfer == "gpu_int"
         self._contexts = OrderedDict()
         self.graph_prepare_seconds = 0.0
         self.graph_cache_hits = 0
         self.graph_capture_count = 0
+
+    @property
+    def probability_transfer(self):
+        # Graph output and host buffer dtypes are fixed for this predictor's lifetime.
+        return self._probability_transfer
 
     def _compute(self):
         with autocast_context(self.device):
@@ -90,6 +100,20 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
         probabilities = logits.softmax(dim=-1)
         if self.check_probabilities:
             self._probabilities_valid = probability_validity(probabilities)
+        if self.probability_transfer == "fp16":
+            probabilities = probabilities.to(torch.float16)
+            if self.check_probabilities:
+                self._probabilities_valid = self._probabilities_valid & probability_validity(probabilities)
+        elif self.probability_transfer == "gpu_int":
+            from .integer_range import quantize_cdf
+            probabilities = quantize_cdf(probabilities)
+            # The CPU decoder borrows these CDFs without rescanning V entries.
+            # Check the integer invariant on-device before trusting the table.
+            self._probabilities_valid = self._probabilities_valid & (
+                probabilities[:, 1:] > probabilities[:, :-1]).all()
+            left = probabilities.gather(1, self._target)
+            right = probabilities.gather(1, self._target + 1)
+            self._intervals = torch.cat((left, right-left), dim=1)
         return probabilities
 
     def _clear_states(self):
@@ -121,6 +145,17 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
         self._probabilities = None
         self._probabilities_valid = None
         self._host_valid = torch.empty((), dtype=torch.bool, pin_memory=self.device.type == "cuda")
+        self._host_transfer = (torch.empty(
+            (size, self.vocab_size), dtype=torch.float16,
+            pin_memory=self.device.type == "cuda")
+            if self.probability_transfer == "fp16" else self._host_probabilities)
+        self._target = self._host_target = self._intervals = self._host_intervals = None
+        if self.probability_transfer == "gpu_int":
+            self._target = torch.zeros((size, 1), dtype=torch.int64, device=self.device)
+            self._host_target = torch.empty((size, 1), dtype=torch.int64, pin_memory=self.device.type == "cuda")
+            self._host_transfer = torch.empty((size, self.vocab_size+1), dtype=torch.int32,
+                                              pin_memory=self.device.type == "cuda")
+            self._host_intervals = torch.empty((size, 2), dtype=torch.int32, pin_memory=self.device.type == "cuda")
         self._prefetch_slots = None
         if self.use_graph:
             if self.device.type != "cuda":
@@ -147,30 +182,39 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
             self.graph_capture_count += 1
         keys = ("active_batch_size", "states", "_token", "_host_token",
                 "_host_probabilities", "_buffered_steps", "_graph", "_probabilities", "_prefetch_slots",
-                "_probabilities_valid", "_host_valid")
+                "_probabilities_valid", "_host_valid", "_host_transfer",
+                "_target", "_host_target", "_intervals", "_host_intervals")
         self._contexts[size] = {key: getattr(self, key) for key in keys}
 
     def prepare_prefetch(self):
-        """Two owned pinned buffers; no tensor arithmetic or probability changes."""
+        """Two pinned slots: probabilities or compact integer encoding intervals."""
         if self.device.type != "cuda" or not self.use_graph:
             raise ValueError("Prefetch requires CUDA graph inference")
         if self._prefetch_slots is None:
             self._prefetch_slots = [dict(
                 tokens=torch.empty_like(self._host_token, pin_memory=True),
-                probabilities=torch.empty_like(self._host_probabilities, pin_memory=True),
+                targets=(torch.empty_like(self._host_target, pin_memory=True)
+                         if self.probability_transfer == "gpu_int" else None),
+                probabilities=torch.empty_like(self._host_intervals if self.probability_transfer == "gpu_int"
+                                                else self._host_transfer, pin_memory=True),
+                restored=(torch.empty((self.active_batch_size, self.vocab_size), dtype=torch.float32)
+                          if self.probability_transfer == "fp16" else None),
                 valid=torch.empty((), dtype=torch.bool, pin_memory=True),
                 ready=torch.cuda.Event(),
                 events=[torch.cuda.Event(enable_timing=True) for _ in range(4)]) for _ in range(2)]
             self._contexts[self.active_batch_size]["_prefetch_slots"] = self._prefetch_slots
 
     @torch.inference_mode()
-    def _enqueue_prefetch(self, tokens, slot):
+    def _enqueue_prefetch(self, tokens, slot, targets=None):
         timing = getattr(self, "profile_timings", None)
         stream = torch.cuda.current_stream(self.device)
         if timing is not None:
             slot["events"][0].record(stream)
         slot["tokens"].numpy()[:] = tokens
         self._token.copy_(slot["tokens"], non_blocking=True)
+        if targets is not None:
+            slot["targets"].numpy()[:, 0] = targets
+            self._target.copy_(slot["targets"], non_blocking=True)
         if timing is not None:
             slot["events"][1].record(stream)
         self._graph.replay()
@@ -178,7 +222,9 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
             slot["events"][2].record(stream)
         # All submissions share the current stream: the graph's reusable device
         # output is copied before the next replay can overwrite it.
-        slot["probabilities"].copy_(self._probabilities, non_blocking=True)
+        slot["probabilities"].copy_(self._intervals if self.probability_transfer == "gpu_int"
+                                    else self._probabilities, non_blocking=True)
+        self.probability_transfer_bytes += slot["probabilities"].numel() * slot["probabilities"].element_size()
         if self.check_probabilities:
             slot["valid"].copy_(self._probabilities_valid, non_blocking=True)
         if timing is not None:
@@ -206,7 +252,8 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
         if limit <= 1:
             return
         def submit(position, slot):
-            self._enqueue_prefetch(np.where(lengths > position, values[:, position-1], 0), slot)
+            targets = values[:, position] if self.probability_transfer == "gpu_int" else None
+            self._enqueue_prefetch(np.where(lengths > position, values[:, position-1], 0), slot, targets)
         submit(1, self._prefetch_slots[0])
         try:
             for position in range(1, limit):
@@ -221,13 +268,19 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
                         timing[name] += events[i].elapsed_time(events[i+1]) / 1000
                 if position+1 < limit:
                     submit(position+1, self._prefetch_slots[position % 2])
-                yield slot["probabilities"].numpy(), None
+                result = slot["probabilities"]
+                if slot["restored"] is not None:
+                    # Both tensors are on the CPU. PyTorch uses vectorized half
+                    # conversion; NumPy's half conversion can dominate the codec.
+                    slot["restored"].copy_(result)
+                    result = slot["restored"]
+                yield result.numpy(), None
         finally:
             # Also drain queued work if a consumer rejects a distribution.
             self.synchronize()
 
     @torch.inference_mode()
-    def step(self, tokens, *, active=None):
+    def step(self, tokens, *, active=None, targets=None):
         tokens = np.asarray(tokens)
         if (not self.active_batch_size or tokens.shape != (self.active_batch_size,)
                 or not np.issubdtype(tokens.dtype, np.integer)
@@ -237,12 +290,21 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
             raise ValueError("An independent block allows 2047 predictions; reset the batch.")
         if active is not None and np.asarray(active, dtype=bool).shape != tokens.shape:
             raise ValueError("Active mask must match the batch shape.")
+        if targets is not None:
+            targets = np.asarray(targets)
+            if (self.probability_transfer != "gpu_int" or targets.shape != tokens.shape
+                    or not np.issubdtype(targets.dtype, np.integer)
+                    or np.any(targets < 0) or np.any(targets >= self.vocab_size)):
+                raise ValueError("Integer interval prediction requires B valid target IDs")
         timing = getattr(self, "profile_timings", None)
         if timing is not None:
             self.synchronize()
             started = time.perf_counter()
         self._host_token.numpy()[:] = tokens
         self._token.copy_(self._host_token, non_blocking=True)
+        if targets is not None:
+            self._host_target.numpy()[:, 0] = targets
+            self._target.copy_(self._host_target, non_blocking=True)
         if timing is not None:
             self.synchronize()
             timing["upload"] += time.perf_counter() - started
@@ -258,13 +320,18 @@ class BatchedStepV5Predictor(c.BatchedStepV4Predictor):
             started = time.perf_counter()
         if self.check_probabilities:
             self._host_valid.copy_(self._probabilities_valid, non_blocking=True)
-        self._host_probabilities.copy_(probabilities, non_blocking=False)
+        output = self._host_intervals if targets is not None else self._host_transfer
+        output.copy_(self._intervals if targets is not None else probabilities, non_blocking=False)
+        if self.device.type == "cuda":
+            self.probability_transfer_bytes += output.numel() * output.element_size()
         if self.check_probabilities and not self._host_valid.item():
             raise ValueError("Invalid predicted probabilities")
+        if self.probability_transfer == "fp16":
+            self._host_probabilities.copy_(self._host_transfer)
         if timing is not None:
             timing["download"] += time.perf_counter() - started
         self.steps_in_block += 1
-        return self._host_probabilities.numpy(), None
+        return (output if self.probability_transfer == "gpu_int" else self._host_probabilities).numpy(), None
 
     def execution_metrics(self):
         return dict(graph_enabled=self.use_graph, graph_prepare_seconds=self.graph_prepare_seconds,
