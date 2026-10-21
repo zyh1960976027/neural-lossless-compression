@@ -8,6 +8,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEST_EXPERIMENTS_ROOT = PROJECT_ROOT / "experiments" / "test"
 TRAIN_EXPERIMENTS_ROOT = PROJECT_ROOT / "experiments" / "train"
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "checkpoints" / "best.pt"
+DEFAULT_TOKEN_CHECKPOINT = PROJECT_ROOT / "checkpoints" / "bpe4096" / "inference.pt"
+DEFAULT_TOKENIZER = PROJECT_ROOT / "checkpoints" / "bpe4096" / "tokenizer.model"
 
 
 def validate_experiment_name(value):

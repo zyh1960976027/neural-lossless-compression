@@ -28,33 +28,35 @@ python scripts/build_integer_range.py
 
 `requirements-codec.txt` 补充范围编码与分词依赖；最后一条命令构建 CPU 整数范围编码接口。当前机器的 Conda 环境仍名为 `mamba3`，环境位置与配置见[运行环境](docs/使用指南/运行环境.md)。
 
-准备配套的 BPE 4096 分词器和推理权重，再运行下方示例。数据集、权重、完整实验产物和本机编译的共享库由本地管理，不随 Git 仓库分发；协作者需要另行取得这些文件。
+准备配套的 BPE 4096 分词器和推理权重，分别放在 `checkpoints/bpe4096/tokenizer.model` 和 `checkpoints/bpe4096/inference.pt`。本机已将这两个位置关联到现有实验文件，可直接使用。数据集、权重、完整实验产物和本机编译的共享库由本地管理，不随 Git 仓库分发；协作者需要另行取得这些文件。
 
 ## BPE 编码与解码
 
-把示例中的权重、分词器和输入输出路径替换为实际位置：
+已激活 `mamba3` 环境时，在项目根目录执行一条命令即可压缩完整 enwik9：
 
-```python
-from neural_compression.token_codec import (
-    encode, decode, load_token_predictor, load_token_decoder,
-)
-from neural_compression.tokenization import LosslessTokenizer
-from neural_compression.codec import verify_files
+```bash
+python run.py encode --input datasets/raw/enwik9 --output experiments/test/enwik9.m3rc
+```
 
-checkpoint = "/path/to/bpe4096/inference.pt"
-tokenizer = LosslessTokenizer("/path/to/bpe4096/tokenizer.model", threads=24)
-predictor = load_token_predictor(checkpoint, probability_transfer="gpu_int")
-encode("input.bin", "compressed.m3rc", predictor, tokenizer)
+恢复原始文件：
 
-# 解码也可在独立进程中执行，分词器和编解码设置从压缩文件读取。
-decoder = load_token_decoder(checkpoint, "compressed.m3rc")
-decode("compressed.m3rc", "decoded.bin", decoder)
-verify_files("input.bin", "decoded.bin")
+```bash
+python run.py decode --input experiments/test/enwik9.m3rc --output experiments/test/enwik9.decoded
+```
+
+也可以一次完成压缩、解压和原文逐字节比较：
+
+```bash
+python run.py roundtrip --input datasets/raw/enwik9 \
+  --compressed experiments/test/enwik9.m3rc \
+  --decoded experiments/test/enwik9.decoded
 ```
 
 每块包含最多 2048 个子词，默认同时处理 1024 块。编码端只下载实际子词对应的整数区间；解码端下载完整整数累计表，由 CPU 查找并恢复子词。压缩文件内嵌分词器，记录批大小、量化方式、权重和运行环境指纹，并通过长度、CRC 和原文 SHA256 校验恢复结果。
 
-主线调用须显式选择 `gpu_int`；底层接口为兼容已有调用保留 FP32 默认值。解码要求相同权重和兼容运行环境，输出父目录须存在，已有文件不会覆盖。模式、格式和复现实验说明见[BPE 概率传输](docs/使用指南/BPE概率传输.md)。
+命令入口默认选择 `gpu_int`、`cuda:0`、分词线程 24 和 PyTorch CPU 线程 1。输出父目录自动创建，已有文件不会覆盖；运行后打印 JSON 指标，可用 `--results <路径>` 另存。`--checkpoint`、`--tokenizer` 可指定其他匹配的权重与分词器，编码还支持 `--batch-size` 和 `--probability-transfer`。解码自动读取压缩文件中的批大小与概率处理方式，要求使用相同权重和兼容运行环境。
+
+查看完整参数可执行 `python run.py encode --help` 或 `python run.py decode --help`；`python -m neural_compression` 提供相同入口。Python 接口及模式、格式和复现实验说明见[BPE 概率传输](docs/使用指南/BPE概率传输.md)。
 
 ## 训练与其他入口
 
@@ -68,6 +70,7 @@ BPE 和 Unigram 的数据准备、训练及评测使用 `scripts/benchmark_sente
 neural-lossless-compression/
 ├── README.md                 中文项目入口
 ├── AGENTS.md                 项目协作规范
+├── run.py                    主线压缩、解压与往返校验入口
 ├── neural_compression/       分词、预测、训练与范围编解码实现
 ├── native/integer_range/     CPU 整数范围编码接口及锁定的 Rust 依赖
 ├── scripts/                  实验、性能分析、构建及环境脚本

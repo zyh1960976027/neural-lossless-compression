@@ -2,7 +2,20 @@
 
 BPE 编解码支持 `fp32`、`fp16` 和 `gpu_int` 三种传输方式。模型仍生成 FP32 概率；`fp16` 在 GPU 上将概率转换为 16 位浮点数，传回 CPU 后恢复为 FP32，再由原 Constriction 0.4.2 完成概率量化与区间编解码。`gpu_int` 在 GPU 上生成整数频率与累计区间，再交给 CPU 上同版本的 Constriction 区间编解码核心。各模式编码和解码执行相同规则，原始文件须逐字节无损恢复。
 
-主分支采用 BPE 4096 和 `gpu_int`，调用时须显式指定该模式；底层 API 为兼容已有调用仍保留 `fp32` 默认值。FP16 的传输量减半，但 GPU 转换和 CPU 恢复也有成本，对照结果见[FP16 实验报告](../实验报告/BPE传输优化/实验报告.md)。本功能用于子词编解码 API，根目录 `codec.py` 是字节基线入口。
+主分支采用 BPE 4096 和 `gpu_int`，根目录 `run.py` 命令入口默认选择该模式；底层 Python API 为兼容已有调用仍保留 `fp32` 默认值。FP16 的传输量减半，但 GPU 转换和 CPU 恢复也有成本，对照结果见[FP16 实验报告](../实验报告/BPE传输优化/实验报告.md)。根目录 `codec.py` 是字节基线入口。
+
+## 命令行使用
+
+激活 `mamba3` 环境后，在项目根目录执行：
+
+```bash
+python run.py encode --input datasets/raw/enwik9 --output experiments/test/enwik9.m3rc
+python run.py decode --input experiments/test/enwik9.m3rc --output experiments/test/enwik9.decoded
+```
+
+默认权重为 `checkpoints/bpe4096/inference.pt`，分词器为 `checkpoints/bpe4096/tokenizer.model`。本机已关联到现有 BPE 4096 实验文件；其他机器需准备对应文件，或使用 `--checkpoint`、`--tokenizer` 指定路径。输出父目录自动创建，已有文件不会覆盖；`--results` 可另存 JSON 指标。编码默认批大小 1024、分词线程 24、PyTorch CPU 线程 1，可通过相应参数调整。解码从压缩文件读取批大小和概率处理方式，不需要提供外部分词器。
+
+需要对照 FP32 或 FP16 时，在编码命令追加 `--probability-transfer fp32` 或 `--probability-transfer fp16`。`python run.py roundtrip --input <原文> --compressed <压缩文件> --decoded <恢复文件>` 可完成往返与逐字节比较，完整参数见 `python run.py encode --help`。
 
 ## GPU 整数量化
 
