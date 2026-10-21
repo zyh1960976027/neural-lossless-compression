@@ -1,5 +1,7 @@
 # Mamba-3 Lossless Compression
 
+`baseline/byte` maintains the 256-symbol byte-model comparison with the optimized v5 codec at bdd731c. The project mainline is `main`, which uses BPE 4096 and GPU integer quantization. Use the byte checkpoints and commands documented below.
+
 Mamba-3 predicts byte probabilities, and range coding uses those probabilities
 to compress files losslessly. The project also compares byte models with
 SentencePiece BPE and Unigram models.
