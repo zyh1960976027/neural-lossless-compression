@@ -2,7 +2,7 @@
 
 BPE 编解码支持 `fp32`、`fp16` 和 `gpu_int` 三种传输方式。模型仍生成 FP32 概率；`fp16` 在 GPU 上将概率转换为 16 位浮点数，传回 CPU 后恢复为 FP32，再由原 Constriction 0.4.2 完成概率量化与区间编解码。`gpu_int` 在 GPU 上生成整数频率与累计区间，再交给 CPU 上同版本的 Constriction 区间编解码核心。各模式编码和解码执行相同规则，原始文件须逐字节无损恢复。
 
-当前默认保持 `fp32`。FP16 的传输量减半，但 GPU 转换和 CPU 恢复也有成本，实际速度及默认选择以[实验报告](../实验报告/BPE传输优化/实验报告.md)为准。该功能用于子词编解码 API，根目录字节编解码命令和训练入口没有迁移。
+主分支采用 BPE 4096 和 `gpu_int`，调用时须显式指定该模式；底层 API 为兼容已有调用仍保留 `fp32` 默认值。FP16 的传输量减半，但 GPU 转换和 CPU 恢复也有成本，对照结果见[FP16 实验报告](../实验报告/BPE传输优化/实验报告.md)。本功能用于子词编解码 API，根目录 `codec.py` 是字节基线入口。
 
 ## GPU 整数量化
 
@@ -12,7 +12,7 @@ BPE 编解码支持 `fp32`、`fp16` 和 `gpu_int` 三种传输方式。模型仍
 python scripts/build_integer_range.py
 ```
 
-构建使用 `native/integer_range/Cargo.lock` 固定的依赖，其中 Constriction 为 0.4.2；生成的共享库不纳入版本管理。仅使用 FP32、FP16 或字节路径时无需 Rust 工具链。构建完成后，将下方示例中的 `probability_transfer` 改为 `"gpu_int"` 即可，解码仍自动读取文件头。该模式使用 CUDA Graph 执行模型推理、整数量化及目标区间提取。
+构建使用 `native/integer_range/Cargo.lock` 固定的依赖，其中 Constriction 为 0.4.2；生成的共享库不纳入版本管理。仅使用 FP32、FP16 或字节路径时无需 Rust 工具链。下方示例按主线设置为 `gpu_int`，解码自动读取文件头。该模式使用 CUDA Graph 执行模型推理、整数量化及目标区间提取。
 
 量化总频率为 2²⁴，每个 token 至少分配 1，其余频率根据归一化累计概率分配。FP32 模型概率通过 FP64 前缀和计算累计概率，取整得到累计频率；相邻累计频率之差为符号频率。编码与解码采用相同运算顺序，GPU 同时检查原始概率合法性和整数累计表严格递增。模型计算精度不变，新增 FP64 只用于量化。
 
@@ -30,7 +30,7 @@ from mamba3_byte_compress.tokenization import LosslessTokenizer
 
 checkpoint = "experiments/tokenizers/enwik9_sp4096_20261019/evaluation/bpe/inference.pt"
 tokenizer_path = "experiments/tokenizers/enwik9_sp4096_20261019/bpe/tokenizer.model"
-predictor = load_token_predictor(checkpoint, probability_transfer="fp16")
+predictor = load_token_predictor(checkpoint, probability_transfer="gpu_int")
 tokenizer = LosslessTokenizer(tokenizer_path, threads=24)
 encoded = encode("input.bin", "compressed.m3rc", predictor, tokenizer)
 
