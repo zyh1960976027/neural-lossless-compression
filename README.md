@@ -1,53 +1,34 @@
-# Mamba-3 Lossless Compression
+# Mamba-3 Unigram Lossless Compression
 
-Mamba-3 predicts byte probabilities, and range coding uses those probabilities
-to compress files losslessly. The project also compares byte models with
-SentencePiece BPE and Unigram models.
+`experiment/unigram` maintains the lossless SentencePiece Unigram comparison
+with a vocabulary of 4096, a Mamba-3 sequence model, and Constriction range
+coding. It starts from the verified token-codec performance snapshot bdd731c.
+The project mainline is `main`, which uses BPE 4096 and GPU integer quantization.
 
-Read the [Chinese project guide](项目说明.md) for setup and usage, or the
-[directory guide](docs/目录说明.md) for file responsibilities and document links.
-Chinese documentation uses Chinese filenames; this conventional README is an
-English entry page.
+Prepare the Mamba-3/PyTorch CUDA environment and install
+`requirements-codec.txt`. Use the Unigram tokenizer and matching Unigram
+inference checkpoint; BPE and byte checkpoints are not interchangeable.
+Datasets, weights, and full experiment outputs are managed outside Git.
 
-## Setup
+```python
+from mamba3_byte_compress.token_codec import load_token_predictor, encode, decode
+from mamba3_byte_compress.tokenization import LosslessTokenizer
+from mamba3_byte_compress.codec import verify_files
 
-Run commands from the project root in a configured Mamba-3/PyTorch environment
-with a CUDA GPU supporting BF16 and a trained project checkpoint:
-
-```bash
-conda activate mamba3
-python -m pip install -r requirements-codec.txt
+checkpoint = "/path/to/unigram4096/inference.pt"
+tokenizer = LosslessTokenizer("/path/to/unigram4096/tokenizer.model", threads=24)
+predictor = load_token_predictor(checkpoint)
+encode("input.bin", "compressed.m3rc", predictor, tokenizer)
+decode("compressed.m3rc", "decoded.bin", predictor)
+verify_files("input.bin", "decoded.bin")
 ```
 
-The requirements file contains additional codec dependencies. See the
-[environment guide](docs/使用指南/运行环境.md) for the local Conda setup.
+This snapshot uses FP32 probabilities and the optimized token container. See
+the [experiment guide](docs/实验方案/子词与字节压缩对照实验.md),
+[performance report](docs/实验报告/子词模型编解码性能.md), and
+[project directory guide](docs/目录说明.md). Training is available through
+`scripts/benchmark_sentencepiece.py train --algorithm unigram --run-dir <run>`
+after the required preparation, preflight, and tuning stages.
 
-## Encode
-
-```bash
-python codec.py encode \
-  --input /path/to/input.bin \
-  --output /path/to/input.m3rc \
-  --checkpoint checkpoints/best-3M.pt
-```
-
-## Decode
-
-```bash
-python codec.py decode \
-  --input /path/to/input.m3rc \
-  --output /path/to/decoded.bin \
-  --checkpoint checkpoints/best-3M.pt
-cmp /path/to/input.bin /path/to/decoded.bin
-```
-
-Both operations use `codec.py` with different subcommands. Decoding requires
-the same checkpoint and a compatible runtime; inference settings are read from
-the compressed file. Output parent directories must exist, and existing files
-are never overwritten. The default device is `cuda:0`; encoding defaults to
-v5 with batch size 128. Omitting `--checkpoint` selects `checkpoints/best.pt`.
-
-Use `python codec.py --help` or the
-[codec guide](docs/使用指南/无损编解码.md) for roundtrip verification and more options.
-Training and probability evaluation use `train.py` and `evaluate.py`; see the
-[training and evaluation guide](docs/使用指南/训练与评估.md).
+Run `python -m unittest discover -s tests -v` in the configured environment.
+The root `codec.py`, `train.py`, and `evaluate.py` remain byte-model tools.
