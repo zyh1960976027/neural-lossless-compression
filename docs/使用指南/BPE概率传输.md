@@ -23,10 +23,10 @@ python scripts/build_integer_range.py
 ## 编码与解码
 
 ```python
-from mamba3_byte_compress.token_codec import (
+from neural_compression.token_codec import (
     load_token_predictor, load_token_decoder, encode, decode,
 )
-from mamba3_byte_compress.tokenization import LosslessTokenizer
+from neural_compression.tokenization import LosslessTokenizer
 
 checkpoint = "experiments/tokenizers/enwik9_sp4096_20261019/evaluation/bpe/inference.pt"
 tokenizer_path = "experiments/tokenizers/enwik9_sp4096_20261019/bpe/tokenizer.model"
@@ -39,7 +39,7 @@ decoder = load_token_decoder(checkpoint, "compressed.m3rc")
 decoded = decode("compressed.m3rc", "decoded.bin", decoder)
 ```
 
-输入、输出路径必须不同，输出父目录须存在，已有输出不会覆盖。解码内部验证长度、CRC 和原文 SHA256；还可使用 `mamba3_byte_compress.codec.verify_files` 将恢复文件与原文逐字节比较。同一预测器创建后不能修改传输精度，切换模式须重新创建。
+输入、输出路径必须不同，输出父目录须存在，已有输出不会覆盖。解码内部验证长度、CRC 和原文 SHA256；还可使用 `neural_compression.codec.verify_files` 将恢复文件与原文逐字节比较。同一预测器创建后不能修改传输精度，切换模式须重新创建。
 
 FP32 沿用子词容器 v1。FP16 使用 v2 和独立标识，并将 `probability_transfer=fp16` 写入文件头。使用错误精度的预测器会在解码前被拒绝；旧程序不能读取新 FP16 文件。`read_token_settings` 可单独读取批大小和传输配置。
 

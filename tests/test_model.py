@@ -7,7 +7,7 @@ from pathlib import Path
 
 import torch
 
-from mamba3_byte_compress.model import (
+from neural_compression.model import (
     BASELINE_MAMBA3_CONFIG,
     FORMAL_MAMBA3_CONFIG,
     VOCAB_SIZE,

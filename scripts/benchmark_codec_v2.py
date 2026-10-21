@@ -12,7 +12,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from mamba3_byte_compress import codec
+from neural_compression import codec
 from benchmark_codec_sizes import Observer, parse_container
 
 
@@ -75,7 +75,7 @@ def compact_only(baseline_path, output_path, predictor, baseline):
 
 def verify_prediction_code(root):
     before = ast.parse((root / "codec_before.py").read_text())
-    after = ast.parse((ROOT / "mamba3_byte_compress/codec.py").read_text())
+    after = ast.parse((ROOT / "neural_compression/codec.py").read_text())
     names = ("PrefixPredictor", "load_predictor", "_coding_mode", "_categorical", "_uniform")
     for name in names:
         left = next(node for node in before.body if getattr(node, "name", None) == name)

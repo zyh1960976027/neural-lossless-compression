@@ -9,10 +9,10 @@ import constriction
 import numpy as np
 import torch
 
-from mamba3_byte_compress import token_codec as tc
-from mamba3_byte_compress import codec as c
-from mamba3_byte_compress.codec_graph import BatchedStepV5Predictor
-from mamba3_byte_compress.tokenization import LosslessTokenizer
+from neural_compression import token_codec as tc
+from neural_compression import codec as c
+from neural_compression.codec_graph import BatchedStepV5Predictor
+from neural_compression.tokenization import LosslessTokenizer
 from test_token_codec import ControlledPredictor
 from test_tokenization import toy_model
 
@@ -121,7 +121,7 @@ class TransferGPUVerification(unittest.TestCase):
     def test_graph_rounding_prefetch_full_block_and_cleanup(self):
         os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
         torch.set_num_threads(1)
-        from mamba3_byte_compress.model import build_mamba3_token_model
+        from neural_compression.model import build_mamba3_token_model
         torch.manual_seed(2026)
         model, _ = build_mamba3_token_model()
         with torch.no_grad():

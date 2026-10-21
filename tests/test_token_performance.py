@@ -4,8 +4,8 @@ import tempfile
 import unittest
 import numpy as np
 
-from mamba3_byte_compress import token_codec as tc
-from mamba3_byte_compress.tokenization import LosslessTokenizer
+from neural_compression import token_codec as tc
+from neural_compression.tokenization import LosslessTokenizer
 from test_token_codec import ControlledPredictor
 from test_tokenization import toy_model
 

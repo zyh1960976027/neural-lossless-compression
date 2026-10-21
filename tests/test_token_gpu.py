@@ -6,9 +6,9 @@ import unittest
 import numpy as np
 import torch
 
-from mamba3_byte_compress import codec as c
-from mamba3_byte_compress.codec_graph import BatchedStepV5Predictor, probability_validity
-from mamba3_byte_compress.model import build_mamba3_token_model
+from neural_compression import codec as c
+from neural_compression.codec_graph import BatchedStepV5Predictor, probability_validity
+from neural_compression.model import build_mamba3_token_model
 
 
 @unittest.skipUnless(os.environ.get("MAMBA_CODEC_GPU_TEST") == "1", "opt-in real CUDA test")

@@ -16,13 +16,13 @@ import torch
 from torch.utils.data import DataLoader
 
 import evaluate
-from mamba3_byte_compress.config import MODEL_NAME
-from mamba3_byte_compress.data import ByteEvaluationDataset
-from mamba3_byte_compress.metrics import evaluate_probability_model
-from mamba3_byte_compress.model import (
+from neural_compression.config import MODEL_NAME
+from neural_compression.data import ByteEvaluationDataset
+from neural_compression.metrics import evaluate_probability_model
+from neural_compression.model import (
     BASELINE_MAMBA3_CONFIG, FORMAL_MAMBA3_CONFIG, build_mamba3_byte_model,
 )
-from mamba3_byte_compress.trainer import load_mamba3_checkpoint, load_model_checkpoint
+from neural_compression.trainer import load_mamba3_checkpoint, load_model_checkpoint
 
 
 class UniformByteModel(torch.nn.Module):
@@ -57,7 +57,7 @@ class EvaluationTest(unittest.TestCase):
             "training_config": {"sequence_length": 4, "validation_batch_size": 2},
         }
         self.save_checkpoint()
-        builder = patch("mamba3_byte_compress.trainer.build_mamba3_byte_model",
+        builder = patch("neural_compression.trainer.build_mamba3_byte_model",
                         side_effect=lambda config: UniformByteModel())
         device = patch.object(evaluate, "_cuda_device", return_value=torch.device("cpu"))
         self.builder = builder.start()

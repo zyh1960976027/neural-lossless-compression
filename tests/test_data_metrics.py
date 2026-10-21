@@ -12,9 +12,9 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from mamba3_byte_compress.data import ByteEvaluationDataset, ByteTrainingDataset
-from mamba3_byte_compress.metrics import evaluate_probability_model, masked_nll
-from mamba3_byte_compress import metrics
+from neural_compression.data import ByteEvaluationDataset, ByteTrainingDataset
+from neural_compression.metrics import evaluate_probability_model, masked_nll
+from neural_compression import metrics
 
 
 LEGACY_COMMIT = "a5cd9baa24ed2b3959af5ce4572644d6076c69a9"

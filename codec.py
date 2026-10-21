@@ -5,11 +5,11 @@ import json
 from pathlib import Path
 import sys
 
-from mamba3_byte_compress.codec import (
+from neural_compression.codec import (
     decode_file, encode_file, load_predictor, read_codec_settings, roundtrip_file,
     validate_batch_size,
 )
-from mamba3_byte_compress.experiments import DEFAULT_CHECKPOINT
+from neural_compression.experiments import DEFAULT_CHECKPOINT
 
 
 def parse_args(argv=None):

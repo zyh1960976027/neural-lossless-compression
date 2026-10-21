@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT))
 
 def fingerprint():
     names = ("codec.py", "codec_batched_v4.py", "codec_graph.py")
-    return hashlib.sha256(b"".join((ROOT / "mamba3_byte_compress" / n).read_bytes()
+    return hashlib.sha256(b"".join((ROOT / "neural_compression" / n).read_bytes()
                                    for n in names) + Path(__file__).read_bytes()).hexdigest()
 
 
@@ -27,9 +27,9 @@ def worker(path):
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     import numpy as np
     import torch
-    from mamba3_byte_compress import codec as c
-    from mamba3_byte_compress.codec_batched_v4 import encode_batched_v4_file, decode_batched_v4_file
-    from mamba3_byte_compress.token_experiment import git_info
+    from neural_compression import codec as c
+    from neural_compression.codec_batched_v4 import encode_batched_v4_file, decode_batched_v4_file
+    from neural_compression.token_experiment import git_info
     job = json.loads(path.read_text())
     assert fingerprint() == job["code_sha256"], "Implementation changed"
     for name in ("raw", "checkpoint", "reference"):
@@ -85,7 +85,7 @@ def main():
                 checkpoint=str(exp / "evaluation/byte/inference.pt"),
                 reference=str(exp / "evaluation/byte/validation/compressed.m3rc"),
                 code_sha256=fingerprint())
-    from mamba3_byte_compress.codec import sha256_file
+    from neural_compression.codec import sha256_file
     for name in ("raw", "checkpoint", "reference"):
         base[name + "_sha256"] = sha256_file(base[name])
     results = []

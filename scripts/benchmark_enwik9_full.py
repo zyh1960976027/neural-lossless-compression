@@ -16,14 +16,14 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from mamba3_byte_compress.codec import BLOCK_SIZE, sha256_file
-from mamba3_byte_compress.experiments import (
+from neural_compression.codec import BLOCK_SIZE, sha256_file
+from neural_compression.experiments import (
     TEST_EXPERIMENTS_ROOT, create_experiment_directory, validate_experiment_name,
 )
-from mamba3_byte_compress.model import (
+from neural_compression.model import (
     analytic_parameter_counts, autoregressive_macs, parameter_counts,
 )
-from mamba3_byte_compress.trainer import load_mamba3_checkpoint
+from neural_compression.trainer import load_mamba3_checkpoint
 from scripts.benchmark_codec_batched import extract_slice
 
 
@@ -52,11 +52,11 @@ SUMMARY_FIELDS = (
     "constriction", "checkpoint", "source",
 )
 SOURCE_FILES = (
-    "evaluate.py", "mamba3_byte_compress/metrics.py", "mamba3_byte_compress/model.py",
-    "mamba3_byte_compress/data.py", "mamba3_byte_compress/trainer.py",
-    "mamba3_byte_compress/config.py", "mamba3_byte_compress/codec_step_adapter.py",
-    "mamba3_byte_compress/codec.py", "mamba3_byte_compress/codec_batched_v4.py",
-    "mamba3_byte_compress/codec_graph.py", "scripts/benchmark_codec_batched.py",
+    "evaluate.py", "neural_compression/metrics.py", "neural_compression/model.py",
+    "neural_compression/data.py", "neural_compression/trainer.py",
+    "neural_compression/config.py", "neural_compression/codec_step_adapter.py",
+    "neural_compression/codec.py", "neural_compression/codec_batched_v4.py",
+    "neural_compression/codec_graph.py", "scripts/benchmark_codec_batched.py",
     "scripts/benchmark_enwik9_full.py",
 )
 

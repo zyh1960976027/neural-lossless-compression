@@ -13,14 +13,14 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from mamba3_byte_compress.tokenization import digest_file, load_json, save_json
+from neural_compression.tokenization import digest_file, load_json, save_json
 
 
 def fingerprint():
-    paths = sorted((ROOT / "mamba3_byte_compress").glob("*.py")) + [Path(__file__)]
+    paths = sorted((ROOT / "neural_compression").glob("*.py")) + [Path(__file__)]
     crate = ROOT / "native/integer_range"
     paths += sorted(crate.glob("*.toml")) + sorted(crate.glob("*.lock")) + sorted(crate.glob("src/*.rs"))
-    native = ROOT / "mamba3_byte_compress/_integer_range.so"
+    native = ROOT / "neural_compression/_integer_range.so"
     if native.exists():
         paths.append(native)
     return hashlib.sha256(b"".join(p.read_bytes() for p in paths)).hexdigest()
@@ -34,10 +34,10 @@ def experiment(vocab):
 def worker(job_path):
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     import torch
-    from mamba3_byte_compress import token_codec as tc
-    from mamba3_byte_compress.codec import verify_files
-    from mamba3_byte_compress.tokenization import LosslessTokenizer
-    from mamba3_byte_compress.token_experiment import git_info
+    from neural_compression import token_codec as tc
+    from neural_compression.codec import verify_files
+    from neural_compression.tokenization import LosslessTokenizer
+    from neural_compression.token_experiment import git_info
     job = load_json(job_path)
     if fingerprint() != job["code_sha256"]:
         raise ValueError("Implementation changed; use a new experiment directory")

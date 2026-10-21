@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 
 def fingerprint():
-    paths = [ROOT / "mamba3_byte_compress" / name for name in
+    paths = [ROOT / "neural_compression" / name for name in
              ("token_codec.py", "codec_graph.py", "tokenization.py")]
     paths.append(Path(__file__))
     return hashlib.sha256(b"".join(p.read_bytes() for p in paths)).hexdigest()
@@ -23,10 +23,10 @@ def fingerprint():
 def worker(job_path):
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     import torch
-    from mamba3_byte_compress import token_codec as tc
-    from mamba3_byte_compress import codec as c
-    from mamba3_byte_compress.tokenization import LosslessTokenizer, digest_file, save_json
-    from mamba3_byte_compress.token_experiment import git_info
+    from neural_compression import token_codec as tc
+    from neural_compression import codec as c
+    from neural_compression.tokenization import LosslessTokenizer, digest_file, save_json
+    from neural_compression.token_experiment import git_info
     job = json.loads(job_path.read_text())
     if job["code_sha256"] != fingerprint():
         raise ValueError("Implementation changed before worker startup")
@@ -71,7 +71,7 @@ def worker(job_path):
 
 
 def run_job(directory, job):
-    from mamba3_byte_compress.tokenization import save_json
+    from neural_compression.tokenization import save_json
     directory.mkdir(parents=True, exist_ok=True)
     spec = directory / "job.json"
     result = directory / "result.json"
@@ -88,7 +88,7 @@ def run_job(directory, job):
 
 
 def summarize(output):
-    from mamba3_byte_compress.tokenization import save_json
+    from neural_compression.tokenization import save_json
     groups = {}
     for path in sorted(output.glob("*/*/repeat*/encode/result.json")):
         enc = json.loads(path.read_text())
@@ -144,7 +144,7 @@ def main():
     if args.stage == "summary":
         summarize(args.output)
         return
-    from mamba3_byte_compress.tokenization import digest_file
+    from neural_compression.tokenization import digest_file
     exp = args.experiment.resolve()
     raw = exp / "splits/validation.bin"
     for algorithm in args.algorithms:

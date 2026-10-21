@@ -11,11 +11,11 @@ import torch
 import torch.nn.functional as F
 
 import train
-from mamba3_byte_compress.experiments import TRAIN_EXPERIMENTS_ROOT
-from mamba3_byte_compress.config import FORMAL_TRAINING_CONFIG, make_training_config
-from mamba3_byte_compress.metrics import autocast_context
-from mamba3_byte_compress.model import FORMAL_MAMBA3_CONFIG, build_mamba3_byte_model
-from mamba3_byte_compress.trainer import (
+from neural_compression.experiments import TRAIN_EXPERIMENTS_ROOT
+from neural_compression.config import FORMAL_TRAINING_CONFIG, make_training_config
+from neural_compression.metrics import autocast_context
+from neural_compression.model import FORMAL_MAMBA3_CONFIG, build_mamba3_byte_model
+from neural_compression.trainer import (
     ByteTrainer,
     WarmupCosineScheduler,
     load_model_checkpoint,

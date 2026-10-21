@@ -16,7 +16,7 @@ import constriction
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from mamba3_byte_compress import codec
+from neural_compression import codec
 
 PRECISION = 24
 TOTAL = 1 << PRECISION

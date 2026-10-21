@@ -10,12 +10,12 @@ import constriction
 import numpy as np
 import torch
 
-from mamba3_byte_compress import codec as c, token_codec as tc
-from mamba3_byte_compress.codec_graph import BatchedStepV5Predictor
-from mamba3_byte_compress.integer_range import (
+from neural_compression import codec as c, token_codec as tc
+from neural_compression.codec_graph import BatchedStepV5Predictor
+from neural_compression.integer_range import (
     IntegerEncoder, IntegerDecoder, TOTAL, quantize_cdf, select_intervals, uniform_cdf,
 )
-from mamba3_byte_compress.tokenization import LosslessTokenizer
+from neural_compression.tokenization import LosslessTokenizer
 from test_token_codec import ControlledPredictor
 from test_tokenization import toy_model
 

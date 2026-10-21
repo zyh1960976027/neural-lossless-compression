@@ -6,14 +6,14 @@ from pathlib import Path
 
 import torch
 
-from mamba3_byte_compress.config import MODEL_NAME, FORMAL_TRAINING_CONFIG, make_training_config
-from mamba3_byte_compress.experiments import (
+from neural_compression.config import MODEL_NAME, FORMAL_TRAINING_CONFIG, make_training_config
+from neural_compression.experiments import (
     TRAIN_EXPERIMENTS_ROOT,
     create_experiment_directory,
     validate_experiment_name,
 )
-from mamba3_byte_compress.model import build_mamba3_byte_model
-from mamba3_byte_compress.trainer import ByteTrainer, seed_everything
+from neural_compression.model import build_mamba3_byte_model
+from neural_compression.trainer import ByteTrainer, seed_everything
 
 
 def parse_args(argv=None):

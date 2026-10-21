@@ -4,7 +4,7 @@ import tempfile
 import unittest
 import torch
 
-from mamba3_byte_compress.codec_batched_v4 import encode_batched_v4_file, decode_batched_v4_file
+from neural_compression.codec_batched_v4 import encode_batched_v4_file, decode_batched_v4_file
 from test_codec_graph import ContainerPredictor
 from test_codec_step import StatefulModel
 

@@ -11,14 +11,14 @@ import numpy as np
 from sentencepiece import sentencepiece_model_pb2 as pb
 import torch
 
-from mamba3_byte_compress import bpe_vocab_experiment as sweep
-from mamba3_byte_compress import token_training as training
-from mamba3_byte_compress import token_codec as tc
-from mamba3_byte_compress import codec as c
-from mamba3_byte_compress.codec_graph import BatchedStepV5Predictor
-from mamba3_byte_compress.model import build_mamba3_token_model, parameter_counts
-from mamba3_byte_compress.token_pipeline import inference_export, synthetic_preflight
-from mamba3_byte_compress.tokenization import LosslessTokenizer, load_json, save_json
+from neural_compression import bpe_vocab_experiment as sweep
+from neural_compression import token_training as training
+from neural_compression import token_codec as tc
+from neural_compression import codec as c
+from neural_compression.codec_graph import BatchedStepV5Predictor
+from neural_compression.model import build_mamba3_token_model, parameter_counts
+from neural_compression.token_pipeline import inference_export, synthetic_preflight
+from neural_compression.tokenization import LosslessTokenizer, load_json, save_json
 from test_tokenization import toy_model
 from test_token_codec import ControlledPredictor
 
@@ -201,7 +201,7 @@ class BpeVocabularyTest(unittest.TestCase):
                 torch.testing.assert_close(states[0]["model"][name], states[1]["model"][name], atol=0, rtol=0)
 
     def test_large_models_export_with_actual_vocab_and_exact_parameter_counts(self):
-        from mamba3_byte_compress import model as model_module
+        from neural_compression import model as model_module
         with tempfile.TemporaryDirectory() as temporary:
             # Full model construction is already covered by test_model. Check exports
             # separately using tiny weights and the real vocabulary-bearing metadata.

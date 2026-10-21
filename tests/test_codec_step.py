@@ -12,7 +12,7 @@ import numpy as np
 import torch
 
 import codec as cli
-from mamba3_byte_compress.codec import (
+from neural_compression.codec import (
     BLOCK_SIZE, BATCHED_HEADER, CRC32, BATCHED_PROFILE, BATCHED_PROFILE_ID,
     BATCHED_V4_PROFILE, BATCHED_V4_PROFILE_ID, BatchedStepPredictor,
     BatchedStepV4Predictor, PrefixPredictor, decode_file, encode_file,
@@ -97,7 +97,7 @@ class BatchedCodecTest(unittest.TestCase):
         self.root = Path(temp.name)
 
     def test_independent_slots_and_reset(self):
-        from mamba3_byte_compress.codec_step_adapter import _aligned_rows
+        from neural_compression.codec_step_adapter import _aligned_rows
 
         # The real 3M checkpoint has 11 heads: padding must only change storage.
         for tensor in (torch.arange(22).reshape(2, 11).float(),

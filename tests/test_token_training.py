@@ -4,12 +4,12 @@ import unittest
 import numpy as np
 import torch
 
-from mamba3_byte_compress.token_training import TokenBlockDataset, PlateauControl, block_loss, validate
+from neural_compression.token_training import TokenBlockDataset, PlateauControl, block_loss, validate
 
 
 class BlockTrainingTest(unittest.TestCase):
     def test_probe_recognizes_triton_oom_without_hiding_other_failures(self):
-        from mamba3_byte_compress.token_pipeline import is_cuda_out_of_memory
+        from neural_compression.token_pipeline import is_cuda_out_of_memory
         self.assertTrue(is_cuda_out_of_memory(torch.cuda.OutOfMemoryError("allocation failed")))
         self.assertTrue(is_cuda_out_of_memory(RuntimeError("Triton Error [CUDA]: out of memory")))
         self.assertFalse(is_cuda_out_of_memory(RuntimeError("CUDA error: an illegal memory access was encountered")))
@@ -17,8 +17,8 @@ class BlockTrainingTest(unittest.TestCase):
 
     @unittest.skipUnless(Path("checkpoints/best-3M.pt").exists(), "local byte checkpoint unavailable")
     def test_inference_package_is_a_loadable_checkpoint(self):
-        from mamba3_byte_compress.token_pipeline import inference_export
-        from mamba3_byte_compress.trainer import load_mamba3_checkpoint
+        from neural_compression.token_pipeline import inference_export
+        from neural_compression.trainer import load_mamba3_checkpoint
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory) / "inference.pt"
             size = inference_export(Path("checkpoints/best-3M.pt"), target, "byte")

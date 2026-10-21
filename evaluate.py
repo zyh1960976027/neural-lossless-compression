@@ -12,16 +12,16 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from mamba3_byte_compress.config import FORMAL_TRAINING_CONFIG
-from mamba3_byte_compress.data import ByteEvaluationDataset
-from mamba3_byte_compress.experiments import (
+from neural_compression.config import FORMAL_TRAINING_CONFIG
+from neural_compression.data import ByteEvaluationDataset
+from neural_compression.experiments import (
     DEFAULT_CHECKPOINT,
     TEST_EXPERIMENTS_ROOT,
     create_experiment_directory,
     validate_experiment_name,
 )
-from mamba3_byte_compress.metrics import autocast_context, evaluate_probability_model
-from mamba3_byte_compress.trainer import load_mamba3_checkpoint
+from neural_compression.metrics import autocast_context, evaluate_probability_model
+from neural_compression.trainer import load_mamba3_checkpoint
 
 
 DEFAULT_SEQUENCE_LENGTH = 2048

@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from scripts.benchmark_probability_transfer import summarize
-from mamba3_byte_compress.tokenization import digest_file, save_json
+from neural_compression.tokenization import digest_file, save_json
 
 
 class TransferBenchmarkTest(unittest.TestCase):

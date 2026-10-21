@@ -254,8 +254,8 @@ def install_measured_step(predictor, stats):
     """Replace one predictor instance's step with a value-identical measured copy."""
     import numpy as np
     import torch
-    from mamba3_byte_compress import codec as c
-    from mamba3_byte_compress.metrics import autocast_context
+    from neural_compression import codec as c
+    from neural_compression.metrics import autocast_context
 
     predictor._profile_stats = stats
     predictor._profile_events = [torch.cuda.Event(enable_timing=True) for _ in range(4)]
@@ -322,8 +322,8 @@ def install_measured_v4_step(predictor, stats):
     """Measure the optimized GPU-softmax predictor without changing its values."""
     import numpy as np
     import torch
-    from mamba3_byte_compress import codec as c
-    from mamba3_byte_compress.metrics import autocast_context
+    from neural_compression import codec as c
+    from neural_compression.metrics import autocast_context
 
     predictor._profile_stats = stats
     predictor._profile_events = [torch.cuda.Event(enable_timing=True) for _ in range(5)]
@@ -387,8 +387,8 @@ def install_measured_v4_step(predictor, stats):
 def profile_encode_v4(input_path, output_path, predictor, stats):
     import constriction
     import numpy as np
-    from mamba3_byte_compress import codec as c
-    from mamba3_byte_compress import codec_batched_v4 as batched
+    from neural_compression import codec as c
+    from neural_compression import codec_batched_v4 as batched
 
     input_path, output_path = Path(input_path), Path(output_path)
     predictor.synchronize()
@@ -474,8 +474,8 @@ def profile_encode_v4(input_path, output_path, predictor, stats):
 def profile_decode_v4(input_path, output_path, predictor, stats):
     import constriction
     import numpy as np
-    from mamba3_byte_compress import codec as c
-    from mamba3_byte_compress import codec_batched_v4 as batched
+    from neural_compression import codec as c
+    from neural_compression import codec_batched_v4 as batched
 
     input_path, output_path = Path(input_path), Path(output_path)
     predictor.synchronize()
@@ -547,8 +547,8 @@ def profile_decode_v4(input_path, output_path, predictor, stats):
 def profile_encode(input_path, output_path, predictor, stats):
     import constriction
     import numpy as np
-    from mamba3_byte_compress import codec as c
-    from mamba3_byte_compress import codec_batched as batched
+    from neural_compression import codec as c
+    from neural_compression import codec_batched as batched
 
     input_path, output_path = Path(input_path), Path(output_path)
     predictor.synchronize()
@@ -633,8 +633,8 @@ def profile_encode(input_path, output_path, predictor, stats):
 
 def profile_decode(input_path, output_path, predictor, stats):
     import numpy as np
-    from mamba3_byte_compress import codec as c
-    from mamba3_byte_compress import codec_batched as batched
+    from neural_compression import codec as c
+    from neural_compression import codec_batched as batched
 
     input_path, output_path = Path(input_path), Path(output_path)
     predictor.synchronize()
@@ -713,7 +713,7 @@ def groups_for(num_bytes, batch_size, block_size=2048):
 def load_and_warm(args):
     import numpy as np
     import torch
-    from mamba3_byte_compress import codec as c
+    from neural_compression import codec as c
 
     torch.set_num_threads(1)
     settings_started = time.perf_counter()
@@ -758,7 +758,7 @@ def memory_snapshot(predictor):
 
 def run_codec_stage(args):
     import torch
-    from mamba3_byte_compress import codec as c
+    from neural_compression import codec as c
 
     stage_started = time.perf_counter()
     predictor, setup = load_and_warm(args)
@@ -802,7 +802,7 @@ def run_codec_stage(args):
 def run_trace_stage(args):
     import numpy as np
     import torch
-    from mamba3_byte_compress import codec as c
+    from neural_compression import codec as c
 
     args.operation = "encode"
     predictor, setup = load_and_warm(args)
@@ -1050,16 +1050,16 @@ def write_csv_files(output, results):
 
 def source_hashes():
     names = (
-        "codec.py", "mamba3_byte_compress/codec.py", "mamba3_byte_compress/codec_batched.py",
-        "mamba3_byte_compress/codec_batched_v4.py",
-        "mamba3_byte_compress/codec_step_adapter.py", "mamba3_byte_compress/model.py",
+        "codec.py", "neural_compression/codec.py", "neural_compression/codec_batched.py",
+        "neural_compression/codec_batched_v4.py",
+        "neural_compression/codec_step_adapter.py", "neural_compression/model.py",
         "scripts/profile_codec_batched.py",
     )
     return {name: hash_file(ROOT / name) for name in names}
 
 
 def run_parent(args):
-    from mamba3_byte_compress import codec as c
+    from neural_compression import codec as c
 
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)

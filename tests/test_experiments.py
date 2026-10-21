@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from mamba3_byte_compress import experiments
+from neural_compression import experiments
 
 
 class ExperimentDirectoryTest(unittest.TestCase):

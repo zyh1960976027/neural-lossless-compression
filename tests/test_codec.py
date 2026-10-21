@@ -12,13 +12,13 @@ import torch
 from torch.utils.data import DataLoader
 
 import codec as cli
-from mamba3_byte_compress.codec import (
+from neural_compression.codec import (
     BLOCK_SIZE, FRAME, HEADER, COMPACT_HEADER, COMPACT_TRAILER, CRC32,
     PrefixPredictor, decode_file, encode_file,
     roundtrip_file, sha256_file, verify_files,
 )
-from mamba3_byte_compress.data import ByteEvaluationDataset
-from mamba3_byte_compress.metrics import evaluate_probability_model
+from neural_compression.data import ByteEvaluationDataset
+from neural_compression.metrics import evaluate_probability_model
 
 
 class UniformModel(torch.nn.Module):

@@ -8,7 +8,7 @@ import zlib
 import numpy as np
 import torch
 
-from mamba3_byte_compress import codec as c
+from neural_compression import codec as c
 from test_codec_step import StatefulModel
 
 
@@ -77,7 +77,7 @@ class GraphGPUVerification(unittest.TestCase):
     def test_full_recurrence_reset_shapes_and_eviction(self):
         torch.set_num_threads(1)
         p = c.load_predictor('checkpoints/best-3M.pt', inference='batched-step-v5', batch_size=1024)
-        from mamba3_byte_compress.codec_graph import BatchedStepV5Predictor
+        from neural_compression.codec_graph import BatchedStepV5Predictor
         eager = BatchedStepV5Predictor(p.model, p.device, p.checkpoint_sha256, 1024, use_graph=False)
         reference = c.BatchedStepV4Predictor(p.model, p.device, p.checkpoint_sha256, 1024)
         max_error = 0.0

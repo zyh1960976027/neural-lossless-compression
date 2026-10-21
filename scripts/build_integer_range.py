@@ -13,6 +13,6 @@ if __name__ == "__main__":
     target = ROOT / "build/integer_range"
     subprocess.run(["cargo", "build", "--release", "--locked", "--manifest-path", str(crate / "Cargo.toml"),
                     "--target-dir", str(target)], check=True)
-    destination = ROOT / "mamba3_byte_compress/_integer_range.so"
+    destination = ROOT / "neural_compression/_integer_range.so"
     shutil.copy2(target / "release/libmamba_integer_range.so", destination)
     print(destination)

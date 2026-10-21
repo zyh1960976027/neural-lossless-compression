@@ -40,7 +40,7 @@ def completed_stage(output, operation, artifact, sample_bytes):
             raise ValueError(f"Existing {operation} result does not match sample size.")
         digest_field = "compressed_sha256" if operation == "encode" else "decoded_sha256"
         if digest_field in existing:
-            from mamba3_byte_compress.codec import sha256_file
+            from neural_compression.codec import sha256_file
 
             if sha256_file(artifact) != existing[digest_field]:
                 raise ValueError(f"Existing {operation} artifact checksum mismatch.")
@@ -110,7 +110,7 @@ def extract_slice(source, target, offset, count, *, chunk_bytes=8 * 1024 * 1024)
 def stage(args):
     import numpy as np
     import torch
-    from mamba3_byte_compress import codec as c
+    from neural_compression import codec as c
 
     # Keep host-side entropy coding measurements comparable across runs.
     torch.set_num_threads(1)
@@ -201,7 +201,7 @@ def main():
                         help="Continue an incomplete output directory after validating completed stages")
     parser.add_argument("--stage", choices=("encode", "decode"), help=argparse.SUPPRESS)
     args = parser.parse_args()
-    from mamba3_byte_compress import codec as c
+    from neural_compression import codec as c
 
     c.validate_batch_size(args.batch_size)
     if args.sample_bytes <= 0 or args.source_offset < 0:
@@ -294,11 +294,11 @@ def main():
                                       == encoded["original_sha256"] == decoded["decoded_sha256"])
     if not verification["sha256_matches"]:
         raise ValueError("Independent SHA256 verification failed.")
-    sources = ("codec.py", "mamba3_byte_compress/codec.py", "mamba3_byte_compress/codec_batched.py",
-               "mamba3_byte_compress/codec_batched_v4.py",
-               "mamba3_byte_compress/codec_step_adapter.py", "mamba3_byte_compress/codec_graph.py",
-               "mamba3_byte_compress/model.py", "mamba3_byte_compress/trainer.py",
-               "mamba3_byte_compress/metrics.py", "mamba3_byte_compress/config.py",
+    sources = ("codec.py", "neural_compression/codec.py", "neural_compression/codec_batched.py",
+               "neural_compression/codec_batched_v4.py",
+               "neural_compression/codec_step_adapter.py", "neural_compression/codec_graph.py",
+               "neural_compression/model.py", "neural_compression/trainer.py",
+               "neural_compression/metrics.py", "neural_compression/config.py",
                "scripts/benchmark_codec_batched.py")
     verification["source_sha256"] = {name: c.sha256_file(ROOT / name) for name in sources}
     if not (args.output / "verification.json").exists():

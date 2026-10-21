@@ -5,5 +5,5 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 if __name__ == "__main__":
-    from mamba3_byte_compress.token_experiment import main
+    from neural_compression.token_experiment import main
     main()

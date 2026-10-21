@@ -5,8 +5,8 @@ import unittest
 import numpy as np
 import torch
 
-from mamba3_byte_compress import token_codec as tc
-from mamba3_byte_compress.tokenization import LosslessTokenizer
+from neural_compression import token_codec as tc
+from neural_compression.tokenization import LosslessTokenizer
 from test_tokenization import toy_model
 
 
@@ -81,7 +81,7 @@ class TokenCodecTest(unittest.TestCase):
             self.assertFalse(output.exists())
 
     def test_4096_quantization_extremes(self):
-        from mamba3_byte_compress.token_pipeline import synthetic_preflight
+        from neural_compression.token_pipeline import synthetic_preflight
         rows = synthetic_preflight()
         self.assertEqual(len(rows), 8)
         self.assertTrue(all(row["verified"] for row in rows))

@@ -18,7 +18,7 @@ from .token_experiment import ALGORITHMS, ROOT, active_algorithms, announce, git
 
 
 def code_fingerprint():
-    files = sorted((ROOT / "mamba3_byte_compress").glob("*.py"))
+    files = sorted((ROOT / "neural_compression").glob("*.py"))
     files += [ROOT / "requirements-codec.txt", ROOT / "scripts/benchmark_sentencepiece.py"]
     files += [ROOT / "scripts/benchmark_bpe_vocab.py"]
     return hashlib.sha256("".join(digest_file(path) for path in files).encode()).hexdigest()

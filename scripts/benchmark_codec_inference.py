@@ -26,7 +26,7 @@ def run_case(args, mode, index, cold=False):
             raise ValueError(f'Cannot resume different settings in {output}')
         if result['encode']['batch_size'] != args.batch_size or result['encode']['execution'] != MODES[mode][1]:
             raise ValueError(f'Cannot resume different inference in {output}')
-        from mamba3_byte_compress.codec import sha256_file
+        from neural_compression.codec import sha256_file
         if result['encode']['checkpoint_sha256'] != sha256_file(args.checkpoint):
             raise ValueError('Cannot resume a different checkpoint')
         return result
@@ -46,7 +46,7 @@ def run_case(args, mode, index, cold=False):
 def model_measurement(args):
     import numpy as np
     import torch
-    from mamba3_byte_compress import codec as c
+    from neural_compression import codec as c
     torch.set_num_threads(1)
     result = {}
     blocks = (args.sample_bytes + 2047) // 2048

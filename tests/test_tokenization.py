@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 import sentencepiece as spm
 
-from mamba3_byte_compress.tokenization import LosslessTokenizer, raw_segments, tokenize_file
+from neural_compression.tokenization import LosslessTokenizer, raw_segments, tokenize_file
 
 
 def toy_model(algorithm="bpe"):
