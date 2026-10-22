@@ -1,0 +1,1100 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22",
+  "source_before": "df9cbf9b4c2b97eb22a92afdb1822a34847955f6",
+  "scope": "Unused editor debug launch, duplicate activation shortcut, regenerable Rust build cache, pip download cache, and empty host tool directories; active files skipped.",
+  "process_check": "visible /proc file descriptors and memory mappings",
+  "files": [
+    {
+      "path": "build/integer_range/.rustc_info.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 1267,
+      "sha256": "288261f35888edda02425c9f26e105255fb0b1e33d6f6704bbee1ee1c19bcf5e",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/CACHEDIR.TAG",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 177,
+      "sha256": "6d9d1d216e0f83abc5e5662ca62c92b4f23009466b54fa27321a69acdb778bb2",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.cargo-artifact-lock",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.cargo-build-lock",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.cargo-lock",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/allocator-api2-584d7ad77febed72/dep-lib-allocator_api2",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/allocator-api2-584d7ad77febed72/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/allocator-api2-584d7ad77febed72/lib-allocator_api2",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "b06cfa51a61eb975c401dde6bebe601f935d2e04d0e541c4da0c1bae0bd761d3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/allocator-api2-584d7ad77febed72/lib-allocator_api2.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 442,
+      "sha256": "f7a91d755f8e7168a7c411c8b0f155117a51f71644cb0b658c26b9f82f715393",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/autocfg-6497413122503a5d/dep-lib-autocfg",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/autocfg-6497413122503a5d/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/autocfg-6497413122503a5d/lib-autocfg",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "75182e1a2776b35dfde9d083777851845aba5ee391f3f203ce06ba815f180b2a",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/autocfg-6497413122503a5d/lib-autocfg.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 350,
+      "sha256": "28b58f8db581747b6aaf06e570189d79f76397abc36dc5176eb931928e89c000",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/constriction-cc5d32b8535f496c/dep-lib-constriction",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/constriction-cc5d32b8535f496c/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/constriction-cc5d32b8535f496c/lib-constriction",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "ec72ba2fdd9232eb28f00f242f98907abf5e4b847f8f19bba3828caab67417be",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/constriction-cc5d32b8535f496c/lib-constriction.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 738,
+      "sha256": "76452e80ecea0228268dbf6805366c99d8b92c6722a1511f15a0cf598c907403",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/equivalent-a6362794cacbc352/dep-lib-equivalent",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/equivalent-a6362794cacbc352/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/equivalent-a6362794cacbc352/lib-equivalent",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "c25f097d178dff7de93e10bac2f02e4fba3d81fca69e7a4980d5b937de6dabe2",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/equivalent-a6362794cacbc352/lib-equivalent.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 355,
+      "sha256": "d912b459975aec7c99aecbdc00da205fc1e55924a2c98f7ed00fafa4283dedfe",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/foldhash-24b1b5a902e6a555/dep-lib-foldhash",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/foldhash-24b1b5a902e6a555/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/foldhash-24b1b5a902e6a555/lib-foldhash",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "1d881f643188f591f33076f1dbbb19cc9e4b1483ff8a5f37f26707641dd67347",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/foldhash-24b1b5a902e6a555/lib-foldhash.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 386,
+      "sha256": "b49ea0972c6f55c0108e8fb39e1255e6f0123bcdf0f9430c5a74dd524535f4b2",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/hashbrown-09528b6866b2b142/dep-lib-hashbrown",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/hashbrown-09528b6866b2b142/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/hashbrown-09528b6866b2b142/lib-hashbrown",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "7aab0c9e8c4a793a3a4a0d0179f67755beba05e78257ca6c49971bc15f83aae2",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/hashbrown-09528b6866b2b142/lib-hashbrown.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 840,
+      "sha256": "90f014706e88d884eabf1b5f381a26cf2c262ec481fa4c4ccfd3cd0d05988074",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-5f9b5bcaf108d3b6/build-script-build-script-build",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "ff379d249684066a924bb4bfca3dbc5d178f773a0758124609374a9676e921c6",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-5f9b5bcaf108d3b6/build-script-build-script-build.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 521,
+      "sha256": "2d64a309743d7a65494b22bcdce4286f2655a052f9d0bc21cfce1ab7fce33b88",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-5f9b5bcaf108d3b6/dep-build-script-build-script-build",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-5f9b5bcaf108d3b6/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-80fe2bf4a8518cef/run-build-script-build-script-build",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "f9626a0dfec02592f5c30dddb6a9baffce8a6265ef75efe863bd6f7073758a21",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-80fe2bf4a8518cef/run-build-script-build-script-build.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 342,
+      "sha256": "3680476c7ed60ec4f4beade1adca4d9ab42e3138350b7bcf8fb4ff91bfa61a5c",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-8dafef99023e1ce9/dep-lib-libm",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-8dafef99023e1ce9/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-8dafef99023e1ce9/lib-libm",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "f881dffc4f7a6c72ac7016268eb327d139d2e5e16623aca783dea3a774462b7b",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/libm-8dafef99023e1ce9/lib-libm.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 566,
+      "sha256": "80600956a908569e6dd27f0b5dc0ea7f6fd028246d4f666d7e06b4e532ba6c54",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/mamba_integer_range-84c7a397296f97bc/dep-lib-mamba_integer_range",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 30,
+      "sha256": "f14f96adde2da250a05802a30e565519ea310fa1799083f7444b109fa37007fc",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/mamba_integer_range-84c7a397296f97bc/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/mamba_integer_range-84c7a397296f97bc/lib-mamba_integer_range",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "7455f1f1e5f810dac0140912a23342255e39f3622ef373346be6511e46da018a",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/mamba_integer_range-84c7a397296f97bc/lib-mamba_integer_range.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 435,
+      "sha256": "20f389afaf698056b8412b7c3f231802cf9ae33f75d9b278009a986f5111ec72",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-16aa74e929d563a7/build-script-build-script-build",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "0fb524b718602087eb202e31bd2c080e588095537ad9c8bcad8f66acdd055d55",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-16aa74e929d563a7/build-script-build-script-build.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 478,
+      "sha256": "3990e01d1e5d028a602bfc4703b46194b36f641a446521195f52cf9c49e667b0",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-16aa74e929d563a7/dep-build-script-build-script-build",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-16aa74e929d563a7/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-4900e464d49936ae/run-build-script-build-script-build",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "46810663367f7eff084dea9402a3c923445059284f234c25a8111b35b818960b",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-4900e464d49936ae/run-build-script-build-script-build.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 333,
+      "sha256": "7d6a0f192c265ea54a64b95275c491649b0b316c627ce93bd2d6056570b7b229",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-932ec164b8905a7b/dep-lib-num_traits",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-932ec164b8905a7b/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-932ec164b8905a7b/lib-num_traits",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "fd839cabe974b500d464298c29f345e3712cfec5419736ac5b206281e46c952e",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/num-traits-932ec164b8905a7b/lib-num_traits.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 528,
+      "sha256": "6ff02b72125ebb5f23c53aa5c4ccc849ba0049f8fa4c300ca51a6c0662826fa5",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/probability-1e27b632cdc180a4/dep-lib-probability",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/probability-1e27b632cdc180a4/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/probability-1e27b632cdc180a4/lib-probability",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "2f3c4e0e0ac4ffdc07784fe1c65cba93581e3be8641dbb0dd401dda2a811c8ef",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/probability-1e27b632cdc180a4/lib-probability.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 475,
+      "sha256": "653cf86d710d9f162aafb826f75fff8680fe1d5114012489f69d736a5b8ec5aa",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/random-6a6a7b196b896761/dep-lib-random",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/random-6a6a7b196b896761/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/random-6a6a7b196b896761/lib-random",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "d94e72caa0c88a52decb33e53e551c1a6a20f90ccad756516fdc0e9180e0f325",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/random-6a6a7b196b896761/lib-random.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 347,
+      "sha256": "903aecd0d392591f4a1e07fe166c74e913e6f3cb1b0c09788fbea9bb293600d6",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/smallvec-542378535939ac84/dep-lib-smallvec",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/smallvec-542378535939ac84/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/smallvec-542378535939ac84/lib-smallvec",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "cc868344778f9c0f6209475eddf6b621588864a60c29b290c69c9869b59bd3fd",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/smallvec-542378535939ac84/lib-smallvec.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 569,
+      "sha256": "7169a38edd9a4a48974f52128a559f5bcc8a89c17771587468ed4e98841bac5a",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/special-091b86a40e8a3d32/dep-lib-special",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 14,
+      "sha256": "93a4afc37518a1bf7830744017176e1d1946e5df993e47159069839f61fe49ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/special-091b86a40e8a3d32/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/special-091b86a40e8a3d32/lib-special",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 16,
+      "sha256": "15bb85122f08a7157bdc9289fd608d918fa76986d140838e21658b62166457c5",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/.fingerprint/special-091b86a40e8a3d32/lib-special.json",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 405,
+      "sha256": "49b4a49fd0dbc655599910e2d9b9f22daa9fc4695d4336ed837d5d21d755435a",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/libm-5f9b5bcaf108d3b6/build-script-build",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 532736,
+      "sha256": "f7d3e9a48675ab618db229ca658b3a89e6ce0534da0219abf13e3d4e67839956",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/libm-5f9b5bcaf108d3b6/build_script_build-5f9b5bcaf108d3b6",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 532736,
+      "sha256": "f7d3e9a48675ab618db229ca658b3a89e6ce0534da0219abf13e3d4e67839956",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/libm-5f9b5bcaf108d3b6/build_script_build-5f9b5bcaf108d3b6.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 808,
+      "sha256": "42cb206eda80a488c27b6107d8e81a2c202593bb4ac181c1a16757c9fe9aeead",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/libm-80fe2bf4a8518cef/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/libm-80fe2bf4a8518cef/output",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 577,
+      "sha256": "a3b37c53f422c6f73052677abbc710ab2c7b867705a67794d1abdf2803eedf94",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/libm-80fe2bf4a8518cef/root-output",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 109,
+      "sha256": "6b3a02b8b5d7614810d7174071ec23203c49d2cb36329306b9810cbb6a98003f",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/libm-80fe2bf4a8518cef/stderr",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/num-traits-16aa74e929d563a7/build-script-build",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 735984,
+      "sha256": "2a5d41a05c24dd935a93bc5f39e1a1e0d31135a6237b0147aa3826452ae5d457",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/num-traits-16aa74e929d563a7/build_script_build-16aa74e929d563a7",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 735984,
+      "sha256": "2a5d41a05c24dd935a93bc5f39e1a1e0d31135a6237b0147aa3826452ae5d457",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/num-traits-16aa74e929d563a7/build_script_build-16aa74e929d563a7.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 573,
+      "sha256": "fb05146dcd824187e90324e1f498c3e7932d096dcbec04bf1403977284bf13e0",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/num-traits-4900e464d49936ae/invoked.timestamp",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 48,
+      "sha256": "5a109e6643e8d3e88642e3f35e85d2a83e639d07523aa6e99166c48178e965c3",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/num-traits-4900e464d49936ae/output",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 103,
+      "sha256": "b3381c2f8957591e2f83be8bc409d3b9785a8a220c4373dc1ddc455b725153f9",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/num-traits-4900e464d49936ae/root-output",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 115,
+      "sha256": "60d19d42dcf3004a59bc7a767bb6dc2ecb86b93bb367eb690b7f7e6b787c783e",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/build/num-traits-4900e464d49936ae/stderr",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/allocator_api2-584d7ad77febed72.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 6869,
+      "sha256": "73cce9b430111411bd80a82634e8d69d02c1d3fa41795b29aed2a2153bf9cfe0",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/autocfg-6497413122503a5d.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 1793,
+      "sha256": "a9a59f8b98b71dc37c356b700011b2947be65dc8af9edf3d2c0a04d04e774940",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/constriction-cc5d32b8535f496c.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 8363,
+      "sha256": "af40f832000e5034a4ad4ead4705ac0265bb9c79718b182d891b6dd204fa5ca1",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/equivalent-a6362794cacbc352.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 723,
+      "sha256": "959797bff8a1944f265f50290f53cabb4b10a5b8ddbfded424c4e67fc8e2b69d",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/foldhash-24b1b5a902e6a555.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 1804,
+      "sha256": "29bdd785380c7b4094fb883a4a524d974dbd5d568b927fa8faeced02fc533cd8",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/hashbrown-09528b6866b2b142.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 7000,
+      "sha256": "9404fea64779054f6568d770d40ae87c245c80793c665a609937d2011d6a5cbd",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/liballocator_api2-584d7ad77febed72.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 873136,
+      "sha256": "cb435cdec34bfe282fbf2971a51b6994ea8acaac2bd9d6e1a117fb039edde79b",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/liballocator_api2-584d7ad77febed72.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 854403,
+      "sha256": "c2b103cbb880d58ebbb09e1c5d2736dde50ee390704f094641a4d522dbfc4c2c",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libautocfg-6497413122503a5d.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 652760,
+      "sha256": "64e10f4969276aca7802e0bf3ed77d551f46e2582731cf99b05a8f873777df76",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libautocfg-6497413122503a5d.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 82876,
+      "sha256": "d61575716131fdb4452773edfa14aee25989c58ff870d9962131d487ffe835ab",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libconstriction-cc5d32b8535f496c.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 2208362,
+      "sha256": "3dcb64e57a5c241f128af3c88d888b7d40314f8f31284f02dece876f53e94791",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libconstriction-cc5d32b8535f496c.so",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 411088,
+      "sha256": "ae7d5530deb574f23b622fdec7ab99bcb4463ec38459fdf8c1c89887ee7545d8",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libequivalent-a6362794cacbc352.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 13546,
+      "sha256": "54d949b867da9ed935de69134c6668a518f13bba3a73bc2a03410484278b5135",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libequivalent-a6362794cacbc352.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 8627,
+      "sha256": "a75b1cea6d8077b581af1c9a350a79965490b8f5013f49195dcdf012614bda18",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libfoldhash-24b1b5a902e6a555.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 109716,
+      "sha256": "2bd770fb2dc62993adfd1e3eaa2339807262cb885931e19d4f092701ceb7e603",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libfoldhash-24b1b5a902e6a555.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 96477,
+      "sha256": "c76a126fd480f9f04a2321af46619df3153c38ec6db145f6df63364f291e21df",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libhashbrown-09528b6866b2b142.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 1633336,
+      "sha256": "1472000c48122288c35eed06d91de3dda4161adbc06201c4809064169f35a592",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libhashbrown-09528b6866b2b142.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 1621098,
+      "sha256": "cc4f1288833f3878f8f121f73a0cd3b38c11ec99fc752e304e3cc3abb5a22bd8",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/liblibm-8dafef99023e1ce9.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 1839416,
+      "sha256": "fdc3e751b12f2d83b4202cad245853c13a2337c5c48af95ffb1dafb3240886a5",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/liblibm-8dafef99023e1ce9.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 1424503,
+      "sha256": "c326550a1ab847f21b8797704f2cba0f939f74c7da24da5b5c6b9f6fd3d9596d",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libm-8dafef99023e1ce9.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 54782,
+      "sha256": "7367ab311a9dfdedd9ea44e5a1aa4376af08d3533f99e3ea993f766f83d0365f",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libmamba_integer_range.so",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 340320,
+      "sha256": "f429b9b335c23d73765f78bf12c24e1c8433d6aa0d1544d915a35c417e37e360",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libnum_traits-932ec164b8905a7b.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 2079692,
+      "sha256": "6b82c04459d8171308588f0b42d583beefc161c3c88ad27b9c75bc905d3506df",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libnum_traits-932ec164b8905a7b.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 2043677,
+      "sha256": "f5ea58b1ab4bc2f88b1598b6136110c7065736ae0b1161e00feb88d391593e8c",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libprobability-1e27b632cdc180a4.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 457804,
+      "sha256": "6ba44ba5d8ca4a7c6719c06e3960ff116f67eb4d9d15c757306acc9c9f82c1b7",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libprobability-1e27b632cdc180a4.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 329137,
+      "sha256": "8ffde30cf95f894e11250690401474b1fe1695350e859d11b0f9c67807c497f0",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/librandom-6a6a7b196b896761.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 32498,
+      "sha256": "b12f1f8048a96bd9858c921945179a2e6e68fb233503ba6b29e91bbf49b33ae4",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/librandom-6a6a7b196b896761.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 27611,
+      "sha256": "5eb9ac6b759d33fb194304089ca9c6565b5c87f5c75b481ea50806966c86595d",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libsmallvec-542378535939ac84.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 346174,
+      "sha256": "5feb507e074a302eadc197a220ca3d9f4a07ac064987a54db164db962ea26d5b",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libsmallvec-542378535939ac84.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 329720,
+      "sha256": "e6995082eb7eebb3b60d56813c50381f654d5d74b1aa90ee0e57dd6bed490b33",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libspecial-091b86a40e8a3d32.rlib",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 142682,
+      "sha256": "f474147d4af8edd6a96663f6a2bd61de10921298c40c0aedaf11cd6b10bd737d",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/libspecial-091b86a40e8a3d32.rmeta",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 66243,
+      "sha256": "40205151d5afe838dbc4955d14b15b9e14696d5f835c9925427be3b1240ff338",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/mamba_integer_range.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 252,
+      "sha256": "0cf425cecd90f49dc5fc6d3e1215ac3de675de3b30d15d829dbb3ce47e422de0",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/num_traits-932ec164b8905a7b.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 7717,
+      "sha256": "9a2b6a4469d8f56933d3efa32a90704d4cfa986516aabe1bd8bb1790e9d1405f",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/probability-1e27b632cdc180a4.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 8564,
+      "sha256": "afabd4fbce3c6ce98af5673602672060053a8086521208d1bd2ec37609a429d2",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/random-6a6a7b196b896761.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 2171,
+      "sha256": "e4feeafbc0e9deb90f99568119016f807264d90cd2678203725e6c696b15a092",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/smallvec-542378535939ac84.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 713,
+      "sha256": "0aaaf8f89efca1d8061c4884d7cd7cfe4897209a680ecfbd381db0c24637a222",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/deps/special-091b86a40e8a3d32.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 2178,
+      "sha256": "66e643db0cbbf05d983f79c2649de1313b3f4c5d4fb346e4350ac9b64a0bb116",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/libmamba_integer_range.d",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 189,
+      "sha256": "c2e4bd7cae6c57e43e97aa1d55f7968cf96bfbb5c56a2bcc28b4e4e3185ba1e0",
+      "status": "deleted"
+    },
+    {
+      "path": "build/integer_range/release/libmamba_integer_range.so",
+      "purpose": "regenerable_rust_build_cache",
+      "bytes": 340320,
+      "sha256": "f429b9b335c23d73765f78bf12c24e1c8433d6aa0d1544d915a35c417e37e360",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/1/3/2/c/b/132cb6991ed078d68fffc5c5b660de951d45abc794f9612b4d6e90d1",
+      "purpose": "pip_download_cache",
+      "bytes": 1195,
+      "sha256": "6a4a7cbfc740f7baecd572839945cb6e48c0b868cc0f7fafae5ed76ad8c38728",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/1/3/2/c/b/132cb6991ed078d68fffc5c5b660de951d45abc794f9612b4d6e90d1.body",
+      "purpose": "pip_download_cache",
+      "bytes": 413874,
+      "sha256": "2f104f35a6156809e9240ab11ee3b321a7b390df54b4dd43942257f3018a6346",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/4/b/a/5/8/4ba581cba8032aae5211a6298c81137c8b03f92c716fbce559c85f1c",
+      "purpose": "pip_download_cache",
+      "bytes": 1895,
+      "sha256": "4a5e2734853ecddf050fee2988b4b5f1fef36e461a4fd3798a59b3128313873e",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/4/b/a/5/8/4ba581cba8032aae5211a6298c81137c8b03f92c716fbce559c85f1c.body",
+      "purpose": "pip_download_cache",
+      "bytes": 90858,
+      "sha256": "9cb0485a8d113ef66fb2cea3626d5f61194a81992dba0da134ca041ced368acb",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/b/4/0/4/2/b4042704e6d0e5697719550473ab2978b175fae70717ee304ae62eee",
+      "purpose": "pip_download_cache",
+      "bytes": 1899,
+      "sha256": "45964d3be2a4e2f06bdd373096dc4c4413c13bda43234ece2a87b3fca08c5f9a",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/b/4/0/4/2/b4042704e6d0e5697719550473ab2978b175fae70717ee304ae62eee.body",
+      "purpose": "pip_download_cache",
+      "bytes": 57609,
+      "sha256": "6d321c00f3b9f14541fcd67224119f7ddb04f3be767ea7fb321356cfcb98fc54",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/d/0/f/5/f/d0f5f960bf8405298bc98888c540a8bf04beb8ac90d5a799555eadf0",
+      "purpose": "pip_download_cache",
+      "bytes": 1210,
+      "sha256": "b604a0aa7d39c9d27a20ac4f58c324d50b8420993d8d72acf1fa450fefe29375",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/d/0/f/5/f/d0f5f960bf8405298bc98888c540a8bf04beb8ac90d5a799555eadf0.body",
+      "purpose": "pip_download_cache",
+      "bytes": 1387926,
+      "sha256": "27e38eee653abc3d387862e67bc5c8b6f428cd604e688b85d29170b7e725c26c",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/e/5/5/7/2/e5572b581b62883bebddcdd6c0f0eef9ec5e3406520a3632fca110b3",
+      "purpose": "pip_download_cache",
+      "bytes": 1254,
+      "sha256": "df295752c5d04b3fd370298a676e44c1108a13d21751144dc2029903a1ffbed2",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/e/5/5/7/2/e5572b581b62883bebddcdd6c0f0eef9ec5e3406520a3632fca110b3.body",
+      "purpose": "pip_download_cache",
+      "bytes": 10003,
+      "sha256": "ce0a2e9c599cd060a7bc3dffb18be5cfc3d5f293533e3ee4e870eaef0a5500fd",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/f/d/2/e/c/fd2eccf0af1b384329ea4a26cb6b32aacd4660c0a71778f97a8ffb19",
+      "purpose": "pip_download_cache",
+      "bytes": 1243,
+      "sha256": "7825fcb42bf898fcd69f2fa66efddc5529a6aa2c8c05dbe180aa12283d495d9f",
+      "status": "deleted"
+    },
+    {
+      "path": ".cache/pip/http-v2/f/d/2/e/c/fd2eccf0af1b384329ea4a26cb6b32aacd4660c0a71778f97a8ffb19.body",
+      "purpose": "pip_download_cache",
+      "bytes": 10674,
+      "sha256": "3f3a3e6c76e2e6cc367de49bbe3254dc0f855fd88a49586b3b5cfad0fe1cdd0b",
+      "status": "deleted"
+    },
+    {
+      "path": ".vscode/launch.json",
+      "purpose": "obsolete_debug_configuration_for_deleted_byte_test",
+      "bytes": 462,
+      "sha256": "9edfd70ff5684b330c145ff5217e5d605fab54fdf7a504be01ca4b60101e8d04",
+      "status": "deleted",
+      "original_configuration": {
+        "version": "0.2.0",
+        "configurations": [
+          {
+            "name": "调试 data.py 的训练样本",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "unittest",
+            "args": [
+              "tests.test_data_metrics.ByteDataAndMetricsTest.test_training_input_target_alignment",
+              "-v"
+            ],
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "tools/activate.sh",
+      "purpose": "redundant_conda_activation_shortcut",
+      "bytes": 599,
+      "sha256": "baa1c5a41878d2fa269d656c45c7463162328a6bc1b5b3b05d6a1e36f2225d2b",
+      "status": "deleted"
+    },
+    {
+      "path": ".agents",
+      "purpose": "unused_empty_local_tool_directory",
+      "bytes": 0,
+      "status": "deleted_empty_directory"
+    },
+    {
+      "path": ".aws",
+      "purpose": "unused_empty_local_tool_directory",
+      "bytes": 0,
+      "status": "deleted_empty_directory"
+    },
+    {
+      "path": ".codex",
+      "purpose": "unused_empty_local_tool_directory",
+      "bytes": 0,
+      "status": "deleted_empty_directory"
+    }
+  ],
+  "removed_directories": [
+    "build/integer_range/release/.fingerprint/allocator-api2-584d7ad77febed72",
+    "build/integer_range/release/.fingerprint/autocfg-6497413122503a5d",
+    "build/integer_range/release/.fingerprint/constriction-cc5d32b8535f496c",
+    "build/integer_range/release/.fingerprint/equivalent-a6362794cacbc352",
+    "build/integer_range/release/.fingerprint/foldhash-24b1b5a902e6a555",
+    "build/integer_range/release/.fingerprint/hashbrown-09528b6866b2b142",
+    "build/integer_range/release/.fingerprint/libm-5f9b5bcaf108d3b6",
+    "build/integer_range/release/.fingerprint/libm-80fe2bf4a8518cef",
+    "build/integer_range/release/.fingerprint/libm-8dafef99023e1ce9",
+    "build/integer_range/release/.fingerprint/mamba_integer_range-84c7a397296f97bc",
+    "build/integer_range/release/.fingerprint/num-traits-16aa74e929d563a7",
+    "build/integer_range/release/.fingerprint/num-traits-4900e464d49936ae",
+    "build/integer_range/release/.fingerprint/num-traits-932ec164b8905a7b",
+    "build/integer_range/release/.fingerprint/probability-1e27b632cdc180a4",
+    "build/integer_range/release/.fingerprint/random-6a6a7b196b896761",
+    "build/integer_range/release/.fingerprint/smallvec-542378535939ac84",
+    "build/integer_range/release/.fingerprint/special-091b86a40e8a3d32",
+    "build/integer_range/release/.fingerprint",
+    "build/integer_range/release/build/libm-5f9b5bcaf108d3b6",
+    "build/integer_range/release/build/libm-80fe2bf4a8518cef/out",
+    "build/integer_range/release/build/libm-80fe2bf4a8518cef",
+    "build/integer_range/release/build/num-traits-16aa74e929d563a7",
+    "build/integer_range/release/build/num-traits-4900e464d49936ae/out",
+    "build/integer_range/release/build/num-traits-4900e464d49936ae",
+    "build/integer_range/release/build",
+    "build/integer_range/release/deps",
+    "build/integer_range/release/examples",
+    "build/integer_range/release/incremental",
+    "build/integer_range/release",
+    "build/integer_range",
+    "build",
+    ".cache/pip/http-v2/1/3/2/c/b",
+    ".cache/pip/http-v2/1/3/2/c",
+    ".cache/pip/http-v2/1/3/2",
+    ".cache/pip/http-v2/1/3",
+    ".cache/pip/http-v2/1",
+    ".cache/pip/http-v2/4/b/a/5/8",
+    ".cache/pip/http-v2/4/b/a/5",
+    ".cache/pip/http-v2/4/b/a",
+    ".cache/pip/http-v2/4/b",
+    ".cache/pip/http-v2/4",
+    ".cache/pip/http-v2/b/4/0/4/2",
+    ".cache/pip/http-v2/b/4/0/4",
+    ".cache/pip/http-v2/b/4/0",
+    ".cache/pip/http-v2/b/4",
+    ".cache/pip/http-v2/b",
+    ".cache/pip/http-v2/d/0/f/5/f",
+    ".cache/pip/http-v2/d/0/f/5",
+    ".cache/pip/http-v2/d/0/f",
+    ".cache/pip/http-v2/d/0",
+    ".cache/pip/http-v2/d",
+    ".cache/pip/http-v2/e/5/5/7/2",
+    ".cache/pip/http-v2/e/5/5/7",
+    ".cache/pip/http-v2/e/5/5",
+    ".cache/pip/http-v2/e/5",
+    ".cache/pip/http-v2/e",
+    ".cache/pip/http-v2/f/d/2/e/c",
+    ".cache/pip/http-v2/f/d/2/e",
+    ".cache/pip/http-v2/f/d/2",
+    ".cache/pip/http-v2/f/d",
+    ".cache/pip/http-v2/f",
+    ".cache/pip/http-v2",
+    ".cache/pip",
+    ".agents",
+    ".aws",
+    ".codex"
+  ],
+  "summary": {
+    "deleted_files": 137,
+    "deleted_bytes": 22999634,
+    "deleted_empty_tool_directories": 3,
+    "skipped": []
+  },
+  "preserved": [
+    ".git/",
+    ".gitignore",
+    "AGENTS.md",
+    ".conda-envs/",
+    ".cache/triton/",
+    ".vscode/settings.json",
+    "neural_compression/_integer_range.so",
+    "datasets/",
+    "checkpoints/",
+    "experiments/",
+    "historical reports and results",
+    "tools/install_conda_hooks.sh",
+    "tools/conda/"
+  ],
+  "validation": {
+    "cli_help": "passed",
+    "native_extension_load": "passed",
+    "default_native_checkpoint_tokenizer_hashes": "match committed baseline in cleanup-validation-20261021.json",
+    "document_links": "passed",
+    "git_diff_check": "passed"
+  },
+  "empty_tool_directory_note": "The coding sandbox overlays these paths as protected empty mounts and may recreate empty host mount targets. They are not project source and are ignored by Git if recreated."
+}

@@ -1,4 +1,8 @@
+# Local editor and development tool state
 .vscode/
+.agents/
+.codex/
+.aws/
 
 # Python caches
 __pycache__/
