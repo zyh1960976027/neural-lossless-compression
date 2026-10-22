@@ -26,8 +26,8 @@ def quantize_cdf(probabilities):
         raise ValueError("Unsupported integer vocabulary size")
     cumulative = probabilities.cumsum(dim=-1, dtype=torch.float64)
     scaled = cumulative * ((TOTAL - size) / cumulative[..., -1:])
-    ends = scaled.clamp(0, TOTAL-size).to(torch.int32)
-    ends = ends + torch.arange(1, size+1, device=ends.device, dtype=torch.int32)
+    ends = scaled.clamp(0, TOTAL - size).to(torch.int32)
+    ends = ends + torch.arange(1, size + 1, device=ends.device, dtype=torch.int32)
     ends[..., -1] = TOTAL
     return torch.cat((torch.zeros_like(ends[..., :1]), ends), dim=-1)
 
@@ -36,7 +36,9 @@ def quantize_cdf(probabilities):
 def _library():
     path = Path(__file__).with_name("_integer_range.so")
     if not path.exists():
-        raise RuntimeError("Build the integer range interface: python scripts/build_integer_range.py")
+        raise RuntimeError(
+            "Build the integer range interface: python tools/build_integer_range.py"
+        )
     lib = ct.CDLL(str(path))
     pointer = ct.POINTER(ct.c_uint32)
     signatures = {
@@ -48,7 +50,10 @@ def _library():
         "ir_compressed_copy": ([ct.c_void_p, pointer, ct.c_size_t], ct.c_int),
         "ir_decoder_new": ([pointer, ct.c_size_t], ct.c_void_p),
         "ir_decoder_free": ([ct.c_void_p], None),
-        "ir_decode": ([ct.c_void_p, pointer, ct.c_size_t, ct.c_size_t, pointer], ct.c_int),
+        "ir_decode": (
+            [ct.c_void_p, pointer, ct.c_size_t, ct.c_size_t, pointer],
+            ct.c_int,
+        ),
     }
     for name, (args, result) in signatures.items():
         function = getattr(lib, name)
@@ -60,7 +65,10 @@ def _library():
 
 def _array(values, ndim):
     values = np.asarray(values)
-    if values.ndim != ndim or values.dtype not in (np.dtype("int32"), np.dtype("uint32")):
+    if values.ndim != ndim or values.dtype not in (
+        np.dtype("int32"),
+        np.dtype("uint32"),
+    ):
         raise ValueError("Expected a 32-bit integer array")
     return np.ascontiguousarray(values).view(np.uint32)
 
@@ -122,20 +130,27 @@ class IntegerDecoder:
         cdfs = _array(cdfs, 2)
         if not self.handle or cdfs.shape[1] < 3:
             raise ValueError("Expected an open decoder and (B, V+1) CDFs")
-        if not trusted and (np.any(cdfs[:, 0] != 0) or np.any(cdfs[:, -1] != TOTAL)
-                            or np.any(cdfs[:, 1:] <= cdfs[:, :-1])):
+        if not trusted and (
+            np.any(cdfs[:, 0] != 0)
+            or np.any(cdfs[:, -1] != TOTAL)
+            or np.any(cdfs[:, 1:] <= cdfs[:, :-1])
+        ):
             raise ValueError("Invalid integer cumulative distribution")
         result = np.empty(len(cdfs), dtype=np.uint32)
-        if self.lib.ir_decode(self.handle, _ptr(cdfs), len(cdfs), cdfs.shape[1], _ptr(result)):
+        if self.lib.ir_decode(
+            self.handle, _ptr(cdfs), len(cdfs), cdfs.shape[1], _ptr(result)
+        ):
             raise ValueError("Invalid integer range stream or cumulative distribution")
         return result
 
 
 def uniform_cdf(vocab_size):
-    return (np.arange(vocab_size+1, dtype=np.int64) * TOTAL // vocab_size).astype(np.int32)
+    return (np.arange(vocab_size + 1, dtype=np.int64) * TOTAL // vocab_size).astype(
+        np.int32
+    )
 
 
 def select_intervals(cdfs, symbols):
     rows = np.arange(len(symbols))
-    left, right = cdfs[rows, symbols], cdfs[rows, symbols+1]
-    return np.stack((left, right-left), axis=-1)
+    left, right = cdfs[rows, symbols], cdfs[rows, symbols + 1]
+    return np.stack((left, right - left), axis=-1)

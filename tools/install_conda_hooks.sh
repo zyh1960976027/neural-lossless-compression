@@ -12,7 +12,7 @@ fi
 for action in activate deactivate; do
     destination="$env_prefix/etc/conda/$action.d"
     mkdir -p -- "$destination"
-    install -m 644 -- "$project_root/scripts/conda/$action.sh" \
+    install -m 644 -- "$project_root/tools/conda/$action.sh" \
         "$destination/mamba3-byte-compress.sh"
 done
 echo "Installed environment hooks. Run: conda activate mamba3"

@@ -1,65 +1,44 @@
-"""Frozen configuration for the formal Mamba-3 byte baseline."""
+"""当前主线的路径、模型和训练配置。"""
+from pathlib import Path
 
-from copy import deepcopy
-
-
-MODEL_NAME = "mamba3_siso_4l"
-
-FORMAL_TRAINING_CONFIG = {
-    "optimizer": "adam",
-    "peak_lr": 0.0006,
-    "betas": (0.9, 0.99),
-    "eps": 1e-8,
-    "weight_decay": 0.0,
-    "max_grad_norm": 5.0,
-    "precision": "bf16_amp_fp32_master",
-    "total_updates": 50_000,
-    "warmup_updates": 2_000,
-    "min_lr_ratio": 0.1,
-    "global_batch_size": 32,
-    "micro_batch_size": 32,
-    "sequence_length": 2_048,
-    "validation_batch_size": 16,
-    "validation_interval": 2_000,
-    "checkpoint_interval": 2_000,
-    "seed": 2_026,
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CHECKPOINT = PROJECT_ROOT / "checkpoints/bpe4096/inference.pt"
+DEFAULT_TOKENIZER = PROJECT_ROOT / "checkpoints/bpe4096/tokenizer.model"
+DEFAULT_SOURCE = PROJECT_ROOT / "datasets/raw/enwik9"
+VOCAB_SIZE = 4096
+BLOCK_SIZE = 2048
+DEFAULT_BATCH_SIZE = 1024
+TRAIN_BATCH_SIZE = 72
+TRAINING = dict(
+    seed=2026,
+    peak_lr=0.0006,
+    min_lr=0.000006,
+    betas=(0.9, 0.99),
+    eps=1e-8,
+    max_grad_norm=5.0,
+    threshold_bpb=0.001,
+    reduce_patience=5,
+    stop_patience=15,
+    progress_seconds=43200,
+    checkpoint_seconds=900,
+)
+MODEL_CONFIG = {
+    "status": "ready",
+    "family": "mamba3_siso",
+    "label": "Mamba-3 SISO",
+    "n_layer": 2,
+    "d_model": 352,
+    "expand": 2,
+    "d_state": 128,
+    "head_dim": 64,
+    "n_groups": 1,
+    "rope_fraction": 0.5,
+    "chunk_size": 64,
+    "is_outproj_norm": False,
+    "ffn_hidden": 736,
+    "lm_head_init": "zeros",
+    "expected_backbone_params": 3275212,
+    "expected_total_trainable_params": 6158796,
+    "name": "mamba3_siso_2l_v4096",
+    "vocab_size": 4096,
 }
-
-
-def validate_training_config(config):
-    required = set(FORMAL_TRAINING_CONFIG)
-    missing = sorted(required - set(config))
-    if missing:
-        raise ValueError(f"Missing training settings: {', '.join(missing)}")
-    if config["optimizer"] != "adam":
-        raise ValueError("The frozen baseline requires the Adam optimizer.")
-    if config["precision"] != "bf16_amp_fp32_master":
-        raise ValueError("The frozen baseline requires BF16 AMP with FP32 parameters.")
-
-    total_updates = int(config["total_updates"])
-    warmup_updates = int(config["warmup_updates"])
-    global_batch_size = int(config["global_batch_size"])
-    micro_batch_size = int(config["micro_batch_size"])
-    if total_updates <= 0 or warmup_updates < 0 or warmup_updates >= total_updates:
-        raise ValueError("Invalid warmup/total update schedule.")
-    if global_batch_size <= 0 or micro_batch_size <= 0:
-        raise ValueError("Batch sizes must be positive.")
-    if global_batch_size % micro_batch_size:
-        raise ValueError("micro_batch_size must divide global_batch_size exactly.")
-    for key in (
-        "sequence_length",
-        "validation_batch_size",
-        "validation_interval",
-        "checkpoint_interval",
-    ):
-        if int(config[key]) <= 0:
-            raise ValueError(f"{key} must be positive.")
-    return config
-
-
-def make_training_config(**overrides):
-    """Return an isolated baseline config, optionally shortened for tests."""
-
-    config = deepcopy(FORMAL_TRAINING_CONFIG)
-    config.update(overrides)
-    return validate_training_config(config)

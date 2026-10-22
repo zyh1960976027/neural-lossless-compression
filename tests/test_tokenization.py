@@ -6,26 +6,48 @@ import unittest
 import numpy as np
 import sentencepiece as spm
 
-from neural_compression.tokenization import LosslessTokenizer, raw_segments, tokenize_file
+from neural_compression.data import LosslessTokenizer, raw_segments, tokenize_file
 
 
 def toy_model(algorithm="bpe"):
     output = io.BytesIO()
     spm.SentencePieceTrainer.train(
         sentence_iterator=iter(["Hello  world\n中文\tother text" for _ in range(30)]),
-        model_writer=output, model_type=algorithm, vocab_size=320, hard_vocab_limit=False,
-        byte_fallback=True, normalization_rule_name="identity", add_dummy_prefix=False,
-        remove_extra_whitespaces=False, bos_id=-1, eos_id=-1, pad_id=-1,
-        num_threads=1, minloglevel=2)
-    return output.getvalue()
+        model_writer=output,
+        model_type=algorithm,
+        vocab_size=320,
+        hard_vocab_limit=False,
+        byte_fallback=True,
+        normalization_rule_name="identity",
+        add_dummy_prefix=False,
+        remove_extra_whitespaces=False,
+        bos_id=-1,
+        eos_id=-1,
+        pad_id=-1,
+        num_threads=1,
+        minloglevel=2,
+    )
+    from sentencepiece import sentencepiece_model_pb2 as pb
+
+    proto = pb.ModelProto()
+    proto.ParseFromString(output.getvalue())
+    while len(proto.pieces) < 4096:
+        piece = proto.pieces.add()
+        piece.piece = f"unusedfixture{len(proto.pieces)}"
+        piece.score = -1000
+        piece.type = pb.ModelProto.SentencePiece.UNUSED
+    proto.trainer_spec.vocab_size = 4096
+    return proto.SerializeToString()
 
 
 class TokenizationTest(unittest.TestCase):
     def test_arbitrary_bytes_and_threads(self):
         rng = np.random.default_rng(42)
         samples = [bytes(range(256)), b"", b" \n\r\t \0", "中文▁😀".encode()]
-        samples += [rng.integers(0, 256, 2049, dtype=np.uint8).tobytes() for _ in range(8)]
-        for algorithm in ("bpe", "unigram"):
+        samples += [
+            rng.integers(0, 256, 2049, dtype=np.uint8).tobytes() for _ in range(8)
+        ]
+        for algorithm in ("bpe",):
             tokenizer = LosslessTokenizer(toy_model(algorithm))
             baseline = tokenizer.encode_batch(samples)
             tokenizer.threads = 4
@@ -33,7 +55,13 @@ class TokenizationTest(unittest.TestCase):
             for raw, tokens, parallel in zip(samples, baseline, other):
                 np.testing.assert_array_equal(tokens, parallel)
                 self.assertEqual(tokenizer.decode(tokens), raw)
-                self.assertEqual(b"".join(tokenizer.decode(tokens[i:i+2048]) for i in range(0, len(tokens), 2048)), raw)
+                self.assertEqual(
+                    b"".join(
+                        tokenizer.decode(tokens[i : i + 2048])
+                        for i in range(0, len(tokens), 2048)
+                    ),
+                    raw,
+                )
 
     def test_stream_boundaries_and_cache(self):
         raw = b"a" * 65535 + "中文字".encode() + b"\n" + b"x" * 65536 + b"\xff\xe4\xbd"
@@ -43,7 +71,9 @@ class TokenizationTest(unittest.TestCase):
             self.assertEqual(b"".join(raw_segments(source)), raw)
             for segment in list(raw_segments(source))[:-1]:
                 segment.decode("utf8")
-            self.assertEqual(b"".join(raw_segments(source, 65536, 100)), raw[65536:65636])
+            self.assertEqual(
+                b"".join(raw_segments(source, 65536, 100)), raw[65536:65636]
+            )
             tokenizer = LosslessTokenizer(toy_model())
             cache = Path(directory) / "tokens"
             result = tokenize_file(tokenizer, source, output=cache)

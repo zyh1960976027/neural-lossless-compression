@@ -10,23 +10,22 @@ import constriction
 import numpy as np
 import torch
 
-from neural_compression import codec as c, token_codec as tc
-from neural_compression.codec_graph import BatchedStepV5Predictor
-from neural_compression.integer_range import (
-    IntegerEncoder, IntegerDecoder, TOTAL, quantize_cdf, select_intervals, uniform_cdf,
+from neural_compression import io as c, codec as tc
+from neural_compression.inference import Predictor, _coding_mode
+from neural_compression.entropy import (
+    IntegerEncoder,
+    IntegerDecoder,
+    TOTAL,
+    quantize_cdf,
+    select_intervals,
+    uniform_cdf,
 )
-from neural_compression.tokenization import LosslessTokenizer
-from test_token_codec import ControlledPredictor
+from neural_compression.data import LosslessTokenizer
+from helpers import ControlledPredictor
 from test_tokenization import toy_model
 
 
-class IntegerPredictor(ControlledPredictor):
-    probability_transfer = "gpu_int"
-
-    def step(self, tokens, active=None, targets=None):
-        probabilities, _ = super().step(tokens, active)
-        cdf = quantize_cdf(torch.from_numpy(probabilities)).numpy()
-        return (cdf if targets is None else select_intervals(cdf, targets)), None
+IntegerPredictor = ControlledPredictor
 
 
 class IntegerRangeTest(unittest.TestCase):
@@ -42,13 +41,15 @@ class IntegerRangeTest(unittest.TestCase):
             probabilities[1:4] = 0
             probabilities[1:4, 0] = 1
             probabilities[2, -1] = 1e-40
-            probabilities[3, vocab//2] = 1e-10
+            probabilities[3, vocab // 2] = 1e-10
             cdfs = quantize_cdf(torch.from_numpy(probabilities)).numpy()
             self.assertTrue((cdfs[:, 0] == 0).all())
             self.assertTrue((cdfs[:, -1] == TOTAL).all())
             self.assertTrue((np.diff(cdfs, axis=1) >= 1).all())
             symbols = rng.integers(0, vocab, len(cdfs), dtype=np.int32)
-            symbols[:4] = vocab-1  # Includes exact zero and subnormal model probabilities.
+            symbols[:4] = (
+                vocab - 1
+            )  # Includes exact zero and subnormal model probabilities.
             encoder = IntegerEncoder()
             encoder.encode(select_intervals(cdfs, symbols))
             packed = encoder.get_compressed()
@@ -71,13 +72,23 @@ class IntegerRangeTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             encoder.encode(np.array([[-1, 1]], dtype=np.int32))
         width = TOTAL // vocab
-        encoder.encode(np.stack((symbols * width, np.full_like(symbols, width)), axis=-1))
+        encoder.encode(
+            np.stack((symbols * width, np.full_like(symbols, width)), axis=-1)
+        )
         baseline = constriction.stream.queue.RangeEncoder()
-        uniform = constriction.stream.model.Categorical(np.full(vocab, 1/vocab), perfect=False)
+        uniform = constriction.stream.model.Categorical(
+            np.full(vocab, 1 / vocab), perfect=False
+        )
         baseline.encode(symbols, uniform)
-        np.testing.assert_array_equal(encoder.get_compressed(), baseline.get_compressed())
+        np.testing.assert_array_equal(
+            encoder.get_compressed(), baseline.get_compressed()
+        )
         decoder = IntegerDecoder(encoder.get_compressed())
-        for invalid in ([[1, TOTAL//2, TOTAL]], [[0, 0, TOTAL]], [[0, TOTAL, TOTAL-1]]):
+        for invalid in (
+            [[1, TOTAL // 2, TOTAL]],
+            [[0, 0, TOTAL]],
+            [[0, TOTAL, TOTAL - 1]],
+        ):
             with self.assertRaises(ValueError):
                 decoder.decode(np.array(invalid, dtype=np.int32))
         encoder.close()
@@ -92,28 +103,32 @@ class IntegerRangeTest(unittest.TestCase):
                 raw.write_bytes(b"\xff" * size)
                 streams = []
                 for repeat in range(2):
-                    packed, output = root / f"packed{size}.{repeat}", root / f"output{size}.{repeat}"
+                    packed, output = (
+                        root / f"packed{size}.{repeat}",
+                        root / f"output{size}.{repeat}",
+                    )
                     tc.encode(raw, packed, IntegerPredictor(tokenizer), tokenizer)
                     result = tc.decode(packed, output, IntegerPredictor(tokenizer))
                     self.assertTrue(result["checksum_verified"])
                     self.assertEqual(raw.read_bytes(), output.read_bytes())
-                    self.assertEqual(tc.read_token_settings(packed)["probability_transfer"], "gpu_int")
+                    self.assertEqual(tc.read_settings(packed)["batch_size"], 2)
                     streams.append(packed.read_bytes())
                 self.assertEqual(*streams)
-                with self.assertRaisesRegex(ValueError, "transfer mode"):
-                    tc.decode(packed, root / "bad", ControlledPredictor(tokenizer))
-                self.assertFalse((root / "bad").exists())
                 packed.write_bytes(streams[0][:-1])
                 with self.assertRaises(ValueError):
                     tc.decode(packed, root / "bad", IntegerPredictor(tokenizer))
                 self.assertFalse((root / "bad").exists())
-            magic, length = tc.PREFIX.unpack(streams[0][:tc.PREFIX.size])
-            header = json.loads(streams[0][tc.PREFIX.size:tc.PREFIX.size+length])
+            magic, length = tc.PREFIX.unpack(streams[0][: tc.PREFIX.size])
+            header = json.loads(streams[0][tc.PREFIX.size : tc.PREFIX.size + length])
             header["frequency_precision"] = 23
             encoded = json.dumps(header).encode()
-            packed.write_bytes(tc.PREFIX.pack(magic, len(encoded)) + encoded + c.CRC32.pack(zlib.crc32(encoded)))
-            with self.assertRaisesRegex(ValueError, "quantization"):
-                tc.read_token_settings(packed)
+            packed.write_bytes(
+                tc.PREFIX.pack(magic, len(encoded))
+                + encoded
+                + c.CRC32.pack(zlib.crc32(encoded))
+            )
+            with self.assertRaisesRegex(ValueError, "coding profile"):
+                tc.read_settings(packed)
 
     def test_predictor_cpu_target_and_reset(self):
         model = torch.nn.Module()
@@ -121,9 +136,8 @@ class IntegerRangeTest(unittest.TestCase):
         model.blocks = torch.nn.ModuleList()
         model.final_norm = torch.nn.Identity()
         model.lm_head = torch.nn.Linear(16, 320)
-        predictor = BatchedStepV5Predictor(model, "cpu", "0"*64, 3, use_graph=False,
-                                          probability_transfer="gpu_int")
-        with c._coding_mode(predictor):
+        predictor = Predictor(model, "cpu", "0" * 64, 3, use_graph=False)
+        with _coding_mode(predictor):
             for size in (3, 1, 3, 2):
                 tokens = np.arange(size, dtype=np.int32)
                 predictor.reset(size)
@@ -138,7 +152,9 @@ class IntegerRangeTest(unittest.TestCase):
                 predictor.step([0], targets=[0])
 
 
-@unittest.skipUnless(os.environ.get("MAMBA_CODEC_GPU_TEST") == "1", "opt-in real CUDA test")
+@unittest.skipUnless(
+    os.environ.get("MAMBA_CODEC_GPU_TEST") == "1", "opt-in real CUDA test"
+)
 class IntegerGPUVerification(unittest.TestCase):
     def test_gpu_zero_and_tiny_probabilities(self):
         torch.set_num_threads(1)
@@ -150,7 +166,7 @@ class IntegerGPUVerification(unittest.TestCase):
             p[3, -1] = 1e-10
             cdf = quantize_cdf(p).cpu().numpy()
             self.assertTrue((np.diff(cdf, axis=1) >= 1).all())
-            symbols = np.full(4, vocab-1, dtype=np.int32)
+            symbols = np.full(4, vocab - 1, dtype=np.int32)
             encoder = IntegerEncoder()
             encoder.encode(select_intervals(cdf, symbols))
             decoder = IntegerDecoder(encoder.get_compressed())
@@ -168,42 +184,65 @@ class IntegerGPUVerification(unittest.TestCase):
             model.blocks = torch.nn.ModuleList()
             model.final_norm = torch.nn.Identity()
             model.lm_head = torch.nn.Linear(16, vocab)
-            predictor = BatchedStepV5Predictor(model, "cuda:0", "0"*64, 3,
-                                              probability_transfer="gpu_int")
-            with c._coding_mode(predictor):
-                for lengths in (np.array([2048, 2048, 7]), np.array([19]), np.array([19, 19, 1])):
-                    size, steps = len(lengths), int(lengths.max())-1
-                    values = rng.integers(0, vocab, (size, steps+1), dtype=np.int32)
+            predictor = Predictor(model, "cuda:0", "0" * 64, 3)
+            with _coding_mode(predictor):
+                for lengths in (
+                    np.array([2048, 2048, 7]),
+                    np.array([19]),
+                    np.array([19, 19, 1]),
+                ):
+                    size, steps = len(lengths), int(lengths.max()) - 1
+                    values = rng.integers(0, vocab, (size, steps + 1), dtype=np.int32)
                     predictor.reset(size)
                     self.assertTrue(predictor._host_transfer.is_pinned())
                     before = predictor.probability_transfer_bytes
                     expected = []
-                    for position in range(1, steps+1):
-                        tokens = np.where(lengths > position, values[:, position-1], 0)
+                    for position in range(1, steps + 1):
+                        tokens = np.where(
+                            lengths > position, values[:, position - 1], 0
+                        )
                         cdf = predictor.step(tokens)[0]
                         self.assertTrue((np.diff(cdf, axis=1) > 0).all())
                         expected.append(select_intervals(cdf, values[:, position]))
-                    self.assertEqual(predictor.probability_transfer_bytes-before, steps*size*(vocab+1)*4)
+                    self.assertEqual(
+                        predictor.probability_transfer_bytes - before,
+                        steps * size * (vocab + 1) * 4,
+                    )
                     predictor.reset(size)
                     before = predictor.probability_transfer_bytes
-                    for reference, (actual, _) in zip(expected, predictor.iter_prefetched(values, lengths)):
+                    for reference, (actual, _) in zip(
+                        expected, predictor.iter_prefetched(values, lengths)
+                    ):
                         np.testing.assert_array_equal(reference, actual)
-                    self.assertEqual(predictor.probability_transfer_bytes-before, steps*size*8)
+                    self.assertEqual(
+                        predictor.probability_transfer_bytes - before, steps * size * 8
+                    )
                     predictor.reset(size)
                     for position, reference in enumerate(expected, 1):
-                        previous = np.where(lengths > position, values[:, position-1], 0)
-                        np.testing.assert_array_equal(reference, predictor.step(previous, targets=values[:, position])[0])
+                        previous = np.where(
+                            lengths > position, values[:, position - 1], 0
+                        )
+                        np.testing.assert_array_equal(
+                            reference,
+                            predictor.step(previous, targets=values[:, position])[0],
+                        )
                     predictor.reset(size)
                     pending = predictor.iter_prefetched(values, lengths)
                     next(pending)
                     pending.close()
                     predictor.reset(size)
-                    np.testing.assert_array_equal(expected[0], predictor.step(
-                        np.where(lengths > 1, values[:, 0], 0), targets=values[:, 1])[0])
+                    np.testing.assert_array_equal(
+                        expected[0],
+                        predictor.step(
+                            np.where(lengths > 1, values[:, 0], 0), targets=values[:, 1]
+                        )[0],
+                    )
                 with torch.no_grad():
                     model.lm_head.weight.fill_(float("nan"))
                 predictor.reset(1)
-                pending = predictor.iter_prefetched(np.zeros((1, 2), dtype=np.int32), np.array([2]))
+                pending = predictor.iter_prefetched(
+                    np.zeros((1, 2), dtype=np.int32), np.array([2])
+                )
                 with self.assertRaisesRegex(ValueError, "Invalid predicted"):
                     next(pending)
                 pending.close()

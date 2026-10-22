@@ -1,6 +1,7 @@
 """Build the pinned Constriction integer interface (requires Cargo >= 1.75)."""
 from pathlib import Path
 import shutil
+import os
 import subprocess
 import sys
 
@@ -11,8 +12,21 @@ if __name__ == "__main__":
         raise SystemExit("This build entry currently supports Linux")
     crate = ROOT / "native/integer_range"
     target = ROOT / "build/integer_range"
-    subprocess.run(["cargo", "build", "--release", "--locked", "--manifest-path", str(crate / "Cargo.toml"),
-                    "--target-dir", str(target)], check=True)
+    subprocess.run(
+        [
+            "cargo",
+            "build",
+            "--release",
+            "--locked",
+            "--manifest-path",
+            str(crate / "Cargo.toml"),
+            "--target-dir",
+            str(target),
+        ],
+        check=True,
+    )
     destination = ROOT / "neural_compression/_integer_range.so"
-    shutil.copy2(target / "release/libmamba_integer_range.so", destination)
+    temporary = destination.with_suffix(".so.tmp")
+    shutil.copy2(target / "release/libmamba_integer_range.so", temporary)
+    os.replace(temporary, destination)
     print(destination)

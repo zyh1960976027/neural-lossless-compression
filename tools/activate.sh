@@ -2,7 +2,7 @@
 # Optional compatibility shortcut; conda activate mamba3 is sufficient.
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    echo "Use: source scripts/activate.sh" >&2
+    echo "Use: source tools/activate.sh" >&2
     exit 1
 fi
 
