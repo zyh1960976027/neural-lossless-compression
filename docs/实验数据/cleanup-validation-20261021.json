@@ -1,0 +1,387 @@
+{
+  "schema_version": 1,
+  "started_date": "2026-10-21",
+  "completed_date": "2026-10-22",
+  "archive_tag": "archive/pre-cleanup-20261021",
+  "archive_commit": "c879cb8c3644671efe0f5ff2b193320ed792e5e9",
+  "source_commit": "b7a9fac9aabff5f2b58e1510205e1d759e1f5c14",
+  "inventory_commit": "5901cbae2802392b09026b6aae0900bf640f896a",
+  "baseline": {
+    "tokenizer": "BPE",
+    "vocab_size": 4096,
+    "max_token_id": 4095,
+    "layers": 2,
+    "parameters": 6158796,
+    "block_size": 2048,
+    "probability_transfer": "gpu_int",
+    "quantization": "cdf-f64-leaky24-v1",
+    "range_coding": "Constriction 0.4.2",
+    "checkpoint_sha256": "d41330864c5e9b8933dcd77512cf13c514fcf4a21ddc04f3b8cfcd04dfc82e37",
+    "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+    "native_sha256": "f429b9b335c23d73765f78bf12c24e1c8433d6aa0d1544d915a35c417e37e360"
+  },
+  "benchmark": {
+    "input": "enwik9",
+    "offset": 100000000,
+    "bytes": 10000000,
+    "tokens": 3616801,
+    "input_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+    "batch_size": 1024,
+    "tokenizer_threads": 24,
+    "cpu_threads": 1,
+    "method": "three encode/decode pairs, independent processes; full and tail shape warmup excluded; lossless byte comparison verified",
+    "before": {
+      "repeats": 3,
+      "compressed_sha256": "f194d78dfa2c7e574a90bb6beedef866ead935a1d3cf7a027d0d1cb3842c0092",
+      "encode_kb_per_second": 734.8708311727967,
+      "decode_kb_per_second": 546.3846299876594,
+      "trials": [
+        {
+          "encode": {
+            "encode_seconds": 13.510459060082212,
+            "encode_kb_per_second": 740.1672996845712,
+            "warmup_seconds": 2.379715320887044,
+            "process_id": 376692,
+            "probability_transfer_bytes": 28936392,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "compressed_sha256": "f194d78dfa2c7e574a90bb6beedef866ead935a1d3cf7a027d0d1cb3842c0092"
+          },
+          "decode": {
+            "decode_seconds": 18.294400221901014,
+            "decode_kb_per_second": 546.6153510749464,
+            "warmup_seconds": 2.3328048209659755,
+            "process_id": 377482,
+            "probability_transfer_bytes": 59276199012,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+            "checksum_verified": true
+          }
+        },
+        {
+          "encode": {
+            "encode_seconds": 13.607833616202697,
+            "encode_kb_per_second": 734.8708311727967,
+            "warmup_seconds": 2.367041587131098,
+            "process_id": 378051,
+            "probability_transfer_bytes": 28936392,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "compressed_sha256": "f194d78dfa2c7e574a90bb6beedef866ead935a1d3cf7a027d0d1cb3842c0092"
+          },
+          "decode": {
+            "decode_seconds": 18.30212537315674,
+            "decode_kb_per_second": 546.3846299876594,
+            "warmup_seconds": 2.342357406858355,
+            "process_id": 378753,
+            "probability_transfer_bytes": 59276199012,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+            "checksum_verified": true
+          }
+        },
+        {
+          "encode": {
+            "encode_seconds": 13.626733230194077,
+            "encode_kb_per_second": 733.8516011924287,
+            "warmup_seconds": 2.2816103170625865,
+            "process_id": 379315,
+            "probability_transfer_bytes": 28936392,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "compressed_sha256": "f194d78dfa2c7e574a90bb6beedef866ead935a1d3cf7a027d0d1cb3842c0092"
+          },
+          "decode": {
+            "decode_seconds": 18.412361915921792,
+            "decode_kb_per_second": 543.1133738117901,
+            "warmup_seconds": 2.227510665077716,
+            "process_id": 380087,
+            "probability_transfer_bytes": 59276199012,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+            "checksum_verified": true
+          }
+        }
+      ]
+    },
+    "after": {
+      "repeats": 3,
+      "compressed_sha256": "f194d78dfa2c7e574a90bb6beedef866ead935a1d3cf7a027d0d1cb3842c0092",
+      "encode_kb_per_second": 737.6878549106436,
+      "decode_kb_per_second": 542.6378563016175,
+      "trials": [
+        {
+          "encode": {
+            "encode_seconds": 13.555869102943689,
+            "encode_kb_per_second": 737.6878549106436,
+            "warmup_seconds": 2.305174445034936,
+            "process_id": 1445373,
+            "probability_transfer_bytes": 28936392,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "compressed_sha256": "f194d78dfa2c7e574a90bb6beedef866ead935a1d3cf7a027d0d1cb3842c0092"
+          },
+          "decode": {
+            "decode_seconds": 18.240135319996625,
+            "decode_kb_per_second": 548.2415467081003,
+            "warmup_seconds": 2.291694451123476,
+            "process_id": 1446126,
+            "probability_transfer_bytes": 59276199012,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+            "checksum_verified": true,
+            "files_identical": true
+          }
+        },
+        {
+          "encode": {
+            "encode_seconds": 13.508948315866292,
+            "encode_kb_per_second": 740.2500747045553,
+            "warmup_seconds": 2.390579069033265,
+            "process_id": 1446699,
+            "probability_transfer_bytes": 28936392,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "compressed_sha256": "f194d78dfa2c7e574a90bb6beedef866ead935a1d3cf7a027d0d1cb3842c0092"
+          },
+          "decode": {
+            "decode_seconds": 18.430518594104797,
+            "decode_kb_per_second": 542.5783300095858,
+            "warmup_seconds": 2.266991334967315,
+            "process_id": 1447449,
+            "probability_transfer_bytes": 59276199012,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+            "checksum_verified": true,
+            "files_identical": true
+          }
+        },
+        {
+          "encode": {
+            "encode_seconds": 13.558720126049593,
+            "encode_kb_per_second": 737.5327395974176,
+            "warmup_seconds": 2.3285953858867288,
+            "process_id": 1448020,
+            "probability_transfer_bytes": 28936392,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "compressed_sha256": "f194d78dfa2c7e574a90bb6beedef866ead935a1d3cf7a027d0d1cb3842c0092"
+          },
+          "decode": {
+            "decode_seconds": 18.4284968029242,
+            "decode_kb_per_second": 542.6378563016175,
+            "warmup_seconds": 2.2924458510242403,
+            "process_id": 1448717,
+            "probability_transfer_bytes": 59276199012,
+            "actual_bpb": 1.3984312,
+            "compressed_bytes": 1748039,
+            "decoded_sha256": "65de6e0008a23a6921af4cfd79ddba1c62b6e38b886f97a4f1e1afdd81c5ceef",
+            "checksum_verified": true,
+            "files_identical": true
+          }
+        }
+      ]
+    },
+    "median_regression_percent": {
+      "decode": 0.6857392174678401,
+      "encode": -0.38333590317514155
+    },
+    "identical_streams": true,
+    "passed": true,
+    "runtime": {
+      "constriction": "0.4.2",
+      "cuda": "12.6",
+      "cuda-bindings": "13.3.1",
+      "device_type": "cuda",
+      "gpu": "NVIDIA GeForce RTX 3090",
+      "mamba_ssm": "2.3.1",
+      "numpy": "2.2.6",
+      "nvidia-cutlass-dsl": "4.4.2",
+      "protobuf": "6.33.6",
+      "quack-kernels": "0.3.4",
+      "sentencepiece": "0.2.1",
+      "token_adapter_version": 1,
+      "torch": "2.9.1+cu126",
+      "triton": "3.5.1"
+    },
+    "local_before": "experiments/test/cleanup-baseline-before-20261021",
+    "local_after": "experiments/test/cleanup-baseline-after-20261021",
+    "direct_stream_byte_comparison": true
+  },
+  "tests": {
+    "cpu": {
+      "command": "python -m unittest discover -s tests -v",
+      "total": 20,
+      "passed": 17,
+      "skipped": 3
+    },
+    "gpu": {
+      "command": "MAMBA_CODEC_GPU_TEST=1 python -m unittest discover -s tests -v",
+      "total": 20,
+      "passed": 20,
+      "skipped": 0
+    },
+    "coverage": [
+      "empty input",
+      "arbitrary bytes",
+      "full blocks",
+      "tail block",
+      "tail batch",
+      "corruption",
+      "overwrite protection",
+      "repeat encoding",
+      "separate-process decoding",
+      "serial/prefetch interval equality",
+      "input changes rejected",
+      "cache changes rejected",
+      "tokenizer reuse",
+      "insufficient vocabulary rejection",
+      "short training",
+      "checkpoint resume",
+      "independent inference export"
+    ]
+  },
+  "training": {
+    "default_split": {
+      "default_source": true,
+      "repeat_preparation_identical": true,
+      "slices_match_preserved_inputs": true,
+      "train_bytes": 100000000,
+      "validation_bytes": 10000000
+    },
+    "reused_tokenizer": {
+      "local_run": "experiments/train/cleanup-verification-20261021/reused",
+      "train_bytes": 4099,
+      "validation_bytes": 2051,
+      "batch_size": 2,
+      "micro_batch_size": 1,
+      "workers": 0,
+      "epochs": 2,
+      "updates": 4,
+      "first_epoch_updates": 2,
+      "preflight": true,
+      "inference": {
+        "bytes": 24646651,
+        "path": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/experiments/train/cleanup-verification-20261021/reused/inference.pt",
+        "sha256": "058c72d19a2475a3000f43d474c291ac4325a5bcbb2cf7b55915822d04bfac4a",
+        "source_checkpoint_sha256": "6272f6e3e2ae0bc0f6cc3eabb97374dd2bd7adfdd153cc2823a4b8f6aa1d3db6"
+      }
+    },
+    "automatic_tokenizer": {
+      "local_run": "experiments/train/cleanup-verification-20261021/automatic",
+      "train_bytes": 65536,
+      "validation_bytes": 16384,
+      "epochs": 1,
+      "updates": 5,
+      "vocab_size": 4096,
+      "preflight": true,
+      "inference": {
+        "bytes": 24646651,
+        "path": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/experiments/train/cleanup-verification-20261021/automatic/inference.pt",
+        "sha256": "cfa9dc7cc220210535a5199b2026efdc385128dbd177f8d6d5121086d71e7033",
+        "source_checkpoint_sha256": "bb4ff6ac2365eb827784deb6241d03f4694f556e2afc1306b3293bf0c57e495d"
+      }
+    },
+    "export_evaluation": {
+      "block_size": 2048,
+      "bpb": 12.000004571740956,
+      "checkpoint": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/experiments/train/cleanup-verification-20261021/reused/inference.pt",
+      "checkpoint_sha256": "058c72d19a2475a3000f43d474c291ac4325a5bcbb2cf7b55915822d04bfac4a",
+      "command": "evaluate",
+      "elapsed_seconds": 4.857181951170787,
+      "first_token_policy": "uniform_per_independent_block",
+      "input": "/media/ivc-17/New Volume/zyh/mamba3-byte-compress/experiments/train/cleanup-verification-20261021/validation.raw",
+      "input_sha256": "b0984bce48b7f2fb77d76ca919c99782fd8ec755ab0c1773b6a58e23c348108d",
+      "metric": "model_probability_bpb",
+      "model_nll": 17043.109375,
+      "num_blocks": 2,
+      "operation": "evaluate",
+      "predicted_tokens": 2049,
+      "raw_bytes": 2051,
+      "tokenizer_sha256": "116b84ff87a39e5cb875e9cd21daae7e35548fa84cc744de31ba507e9862316b",
+      "tokens": 2051,
+      "uniform_seed_nll": 16.635532333438686
+    },
+    "export_roundtrip": true,
+    "default_checkpoint_unchanged": true,
+    "default_tokenizer_unchanged": true
+  },
+  "tools": {
+    "native_build": "locked release build passed; shared library SHA256 unchanged",
+    "environment_hooks": "Bash syntax, temporary environment installation, activation and variable restoration passed",
+    "benchmark": "real GPU one-pair smoke and three-pair reference comparison passed"
+  },
+  "source_sha256": {
+    "neural_compression/__init__.py": "600516d9168f617b479f27872f81ae197e2b60466a9c162a532093dd586d368f",
+    "neural_compression/__main__.py": "bc4980266b68783b735bb53dab925ea946f21f486d6b2c935c1452a9fcc607f4",
+    "neural_compression/cli.py": "4243bbbfcb8a8facb44a47e8bd86d6a46064dd88c37aa4828f137346baa99ff2",
+    "neural_compression/codec.py": "fce3248c810602c3c7ea5af2013a3b43f307badcc4b893222a74765396651d9d",
+    "neural_compression/config.py": "7b1e1bfb4572f8b33d94cf907b0432c165f131ba0dece3d90e3a9c08be801b05",
+    "neural_compression/data.py": "54893926d604d34349e46c28fbeca0456795e1ea02a6a35ce212b495676ffee0",
+    "neural_compression/entropy.py": "eae67b896aae0b3a80762242d814e9f2ef8e222d86e7598fca72fe98725989bf",
+    "neural_compression/evaluation.py": "816db661040846bdb5e3281cfe27ee17386819fe0563d19bb30c64cf251964ff",
+    "neural_compression/inference.py": "185124d271abeabdd9bf583206749c5c222d8ef6fa20743ae4965f73e6d18500",
+    "neural_compression/io.py": "7d1b3f582434f6fc551992fa25a21d85f52dc74ea367efb7cb410cff1625dfff",
+    "neural_compression/model.py": "2034fbbb74e9ab08f374ec4c426e4bc8fe7d19229d702f8e14d45b5e4a21145a",
+    "neural_compression/training.py": "120777fb0210d6b4962423cf4558e41834fceb2e9945ca6307bb4452f1d1751b",
+    "tools/activate.sh": "baa1c5a41878d2fa269d656c45c7463162328a6bc1b5b3b05d6a1e36f2225d2b",
+    "tools/benchmark_baseline.py": "29fc44571b70bae87705d578189b969ae85b5dd06f893a327804c0246f1b1cb9",
+    "tools/build_integer_range.py": "bfd510d79963bb0f38d4dd2ceea3cd63bcf960836384a4c2c0c2bcf02a572047",
+    "tools/conda/activate.sh": "e8b85df0289a1e6849c443b70853eb62ab8121065792688d2d0290a85348d3d1",
+    "tools/conda/deactivate.sh": "24013ebfeeca11ade448fcf682ccd363624ec84d049afe3730f62a6f8b44f06b",
+    "tools/install_conda_hooks.sh": "3ae01d44bd5e237babfa0a6678d05134023a36fe512bdde0820a3a883525f561",
+    "native/integer_range/src/lib.rs": "b8a894b1cd8ba98f116b8056425f0f9d7311fd2ba9e2162513bfdc0666db1d82",
+    "native/integer_range/Cargo.toml": "574c1191f3a521065bcbfb45bf24dd656ebe3d4a2a6e74848439279a511f2856",
+    "native/integer_range/Cargo.lock": "2e1301bd3f3bec09bb36ab6b465531b1be3cafd1d261d5bda879d7d867e8449e"
+  },
+  "cleanup_summary": {
+    "inventoried_files": 2327,
+    "candidate_files": 376,
+    "candidate_bytes": 12854679146,
+    "candidate_by_purpose": {
+      "unnecessary_directory_placeholder": 3,
+      "compressed_stream": 176,
+      "restored_copy": 98,
+      "regenerable_python_or_pytest_cache": 99
+    },
+    "deleted_files": 376,
+    "deleted_bytes": 12854679146,
+    "cache_deleted_files": 99,
+    "cache_deleted_bytes": 784807,
+    "placeholder_deleted_files": 3,
+    "original_experiment_files": 2222,
+    "retained_original_files": 1946,
+    "retained_original_bytes": 13754592880,
+    "changed_or_missing_files": [],
+    "skipped_candidates": [],
+    "artifact_candidate_files": 274,
+    "artifact_candidate_bytes": 12853894339,
+    "artifact_deleted_files": 274,
+    "artifact_deleted_bytes": 12853894339,
+    "retained_files": 1951
+  },
+  "structure_checks": {
+    "root_python_entries": [
+      "run.py"
+    ],
+    "missing_relative_imports": [],
+    "legacy_scheme_dependencies": false,
+    "document_links": "passed",
+    "source_sha256": "passed",
+    "archive_tag_checked_out": true,
+    "long_term_branches": [
+      "baseline/byte",
+      "experiment/model-scale",
+      "experiment/mtp",
+      "experiment/unigram",
+      "main"
+    ],
+    "manifest_paths_and_counts": "passed",
+    "regenerable_caches_removed": true
+  }
+}

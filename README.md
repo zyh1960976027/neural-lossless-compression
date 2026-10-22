@@ -1,96 +1,73 @@
 # neural-lossless-compression（神经网络无损压缩）
 
-本项目研究基于神经网络预测概率的无损压缩。主线使用词表大小为 4096 的 BPE 子词分词器、一维 Mamba-3 序列模型，以及 Range Coding（范围编码，根据预测概率生成压缩码流的方法）。模型输出转换为子词概率后，在 GPU 上量化为整数频率与累计区间，再由 CPU 上的 Constriction 0.4.2 完成范围编码。解码使用相同权重和已经恢复的子词重现概率，最终还原原始字节。
-
-项目名描述压缩任务，具体模型名称保留在实现和实验配置中。当前性能基准是已经完成无损验证的 GPU 整数量化版本，结果见[实验报告](docs/实验报告/BPEGPU整数量化/实验报告.md)。
-
-## 方案分支
-
-| 分支 | 维护内容 |
-| --- | --- |
-| `main` | BPE 4096、Mamba-3、GPU 概率整数量化与范围编码 |
-| `experiment/unigram` | Unigram 4096 子词方案 |
-| `baseline/byte` | 字节模型与优化后的 v5 编解码基线 |
-| `experiment/mtp` | 多 token 预测实验 |
-| `experiment/model-scale` | 模型深度与参数规模实验 |
-
-整理前的分支节点通过 `archive/*` 标签保存，GPU 量化基准由 `baseline/bpe4096-gpu-int-20261021` 标签固定。分支来源及合作约定见[版本管理与协作](docs/使用指南/版本管理与协作.md)。
+本项目使用神经网络预测概率进行无损压缩。当前主线固定为 **BPE 4096（最大编号 4095）＋两层 Mamba-3（6,158,796 参数）＋GPU 整数量化＋Constriction 范围编码**。BPE 将原始字节表示为可逆的子词序列；模型预测下一个子词的概率，在 GPU 上量化为整数频率，Constriction 根据这些频率生成压缩码流。解码使用相同权重逐步复现预测并恢复原始字节。
 
 ## 运行准备
 
-当前实现需要 Linux、已配置的 Mamba-3/PyTorch 环境、支持 BF16 的 CUDA 显卡，以及 Rust/Cargo 1.75 或更新版本。所有命令均在项目根目录执行：
+需要 Linux、已配置的 Mamba-3/PyTorch 环境、支持 BF16 的 CUDA 显卡，以及 Rust/Cargo 1.75 或更新版本。在项目根目录执行：
 
 ```bash
 conda activate mamba3
 python -m pip install -r requirements-codec.txt
-python scripts/build_integer_range.py
+python tools/build_integer_range.py
 ```
 
-`requirements-codec.txt` 补充范围编码与分词依赖；最后一条命令构建 CPU 整数范围编码接口。当前机器的 Conda 环境仍名为 `mamba3`，环境位置与配置见[运行环境](docs/使用指南/运行环境.md)。
+配套的分词器和推理权重默认位于 `checkpoints/bpe4096/tokenizer.model`、`checkpoints/bpe4096/inference.pt`，本机已关联到选定的实验文件。数据、权重、完整实验材料、运行环境和本机编译的共享库不随 Git 分发，协作者需另行取得或生成。环境配置见[运行环境](docs/使用指南/运行环境.md)。
 
-准备配套的 BPE 4096 分词器和推理权重，分别放在 `checkpoints/bpe4096/tokenizer.model` 和 `checkpoints/bpe4096/inference.pt`。本机已将这两个位置关联到现有实验文件，可直接使用。数据集、权重、完整实验产物和本机编译的共享库由本地管理，不随 Git 仓库分发；协作者需要另行取得这些文件。
+## 压缩与解压
 
-## BPE 编码与解码
-
-已激活 `mamba3` 环境时，在项目根目录执行一条命令即可压缩完整 enwik9：
+在已激活的环境中执行：
 
 ```bash
 python run.py encode --input datasets/raw/enwik9 --output experiments/test/enwik9.m3rc
-```
-
-恢复原始文件：
-
-```bash
 python run.py decode --input experiments/test/enwik9.m3rc --output experiments/test/enwik9.decoded
 ```
 
-也可以一次完成压缩、解压和原文逐字节比较：
+一次完成压缩、解压和原文逐字节校验：
 
 ```bash
 python run.py roundtrip --input datasets/raw/enwik9 \
-  --compressed experiments/test/enwik9.m3rc \
-  --decoded experiments/test/enwik9.decoded
+  --compressed experiments/test/enwik9.m3rc --decoded experiments/test/enwik9.decoded
 ```
 
-每块包含最多 2048 个子词，默认同时处理 1024 块。编码端只下载实际子词对应的整数区间；解码端下载完整整数累计表，由 CPU 查找并恢复子词。压缩文件内嵌分词器，记录批大小、量化方式、权重和运行环境指纹，并通过长度、CRC 和原文 SHA256 校验恢复结果。
+已有输出不会覆盖，父目录自动创建。编码默认使用 `cuda:0`、批大小 1024、分词线程 24、PyTorch CPU 线程 1；可以用 `--checkpoint`、`--tokenizer`、`--device`、`--batch-size` 调整配套文件和运行参数。解码从码流读取分词器与批大小，要求相同权重和兼容环境。运行后打印 JSON，`--results 路径` 可另存指标；`encode` 报告包含分词器和容器开销的完整文件 BPB。
 
-命令入口默认选择 `gpu_int`、`cuda:0`、分词线程 24 和 PyTorch CPU 线程 1。输出父目录自动创建，已有文件不会覆盖；运行后打印 JSON 指标，可用 `--results <路径>` 另存。`--checkpoint`、`--tokenizer` 可指定其他匹配的权重与分词器，编码还支持 `--batch-size` 和 `--probability-transfer`。解码自动读取压缩文件中的批大小与概率处理方式，要求使用相同权重和兼容运行环境。
+## 训练与评估
 
-查看完整参数可执行 `python run.py encode --help` 或 `python run.py decode --help`；`python -m neural_compression` 提供相同入口。Python 接口及模式、格式和复现实验说明见[BPE 概率传输](docs/使用指南/BPE概率传输.md)。
+使用 enwik9 前 100 MB 训练、随后 10 MB 验证；省略 `--source` 时使用同一个本机默认路径：
 
-## 训练与其他入口
-
-BPE 和 Unigram 的数据准备、训练及评测使用 `scripts/benchmark_sentencepiece.py`，执行顺序及恢复要求见[子词与字节压缩对照实验](docs/实验方案/子词与字节压缩对照实验.md)。
-
-根目录的 `codec.py`、`train.py` 和 `evaluate.py` 提供字节基线的编解码、训练和概率评估。字节权重与子词权重须分别使用；具体命令见[无损编解码](docs/使用指南/无损编解码.md)和[训练与评估](docs/使用指南/训练与评估.md)。
-
-## 目录与文档
-
-```text
-neural-lossless-compression/
-├── README.md                 中文项目入口
-├── AGENTS.md                 项目协作规范
-├── run.py                    主线压缩、解压与往返校验入口
-├── neural_compression/       分词、预测、训练与范围编解码实现
-├── native/integer_range/     CPU 整数范围编码接口及锁定的 Rust 依赖
-├── scripts/                  实验、性能分析、构建及环境脚本
-├── tests/                    自动化检查
-├── docs/                     使用指南、实验方案、报告、精简数据与图片
-├── codec.py                  字节基线编解码入口
-├── train.py                  字节基线训练入口
-├── evaluate.py               字节基线概率评估入口
-├── requirements-codec.txt    编解码附加依赖
-├── datasets/                 本地数据集，Git 忽略
-├── checkpoints/              本地模型权重，Git 忽略
-└── experiments/              本地运行产物，Git 忽略大型文件
+```bash
+python run.py train --source datasets/raw/enwik9 --run-dir experiments/train/bpe4096_new
 ```
 
-完整文件职责和文档索引见[目录说明](docs/目录说明.md)。当前主线的实现包为 `neural_compression`；其他方案分支沿用各自快照中的源码布局，切换后以该分支说明为准。实验结论与历史代码指纹保存在原报告和结果文件中，新实验使用独立运行目录。
+使用自行准备的完整训练、验证文件：
 
-## 检查
+```bash
+python run.py train --train-file 数据路径 --validation-file 验证数据路径 --run-dir 实验目录
+```
+
+两种数据方式互斥。程序依次准备 BPE、验证分词可逆性、生成两份 token 缓存、完成训练预检并训练。分词器只从训练部分学习；小语料无法构建完整 4096 词表时会报错，可以用 `--tokenizer checkpoints/bpe4096/tokenizer.model` 复用已有分词器。默认每块 2048 个 token、有效批大小 72、加载进程数 0；`--batch-size`、`--micro-batch-size` 和 `--device` 可调整训练配置。`--max-epochs 1` 用于短训练检查，默认按验证集早停收敛。
+
+重复使用同一实验目录会在数据、分词器和配置一致时自动续训，变更则拒绝复用。目录内保存 `checkpoints/best.pt`、`checkpoints/latest.pt`、`inference.pt`、训练曲线、配置及摘要；新权重不会替换默认基线。评估概率 BPB：
+
+```bash
+python run.py evaluate --input 数据路径 \
+  --checkpoint 实验目录/inference.pt --tokenizer 实验目录/tokenizer.model
+```
+
+评估按独立块计算，屏蔽尾部填充，并计入每块首 token 的均匀成本。该指标用于判断模型概率质量，完整压缩文件 BPB 由 `encode` 报告。详细产物和续训规则见[训练与评估](docs/使用指南/训练与评估.md)。
+
+## 结构与历史
+
+根目录唯一 Python 操作入口是 `run.py`；`python -m neural_compression` 调用同一实现，五个子命令均支持 `--help`。核心代码集中在 `neural_compression/`，开发工具位于 `tools/`，职责和调用方式见[目录说明](docs/目录说明.md)。
+
+长期维护五个分支：`main`、`experiment/unigram`、`baseline/byte`、`experiment/mtp`、`experiment/model-scale`。旧字节格式、FP32/FP16 子词格式和多方案实验脚本通过历史分支、标签保存；运行历史命令须检出对应版本。历史报告、精简数据、保留材料及清理记录见[历史索引](docs/使用指南/历史索引.md)，协作约定见[版本管理与协作](docs/使用指南/版本管理与协作.md)。
+
+## 验证
 
 ```bash
 python -m unittest discover -s tests -v
+MAMBA_CODEC_GPU_TEST=1 python -m unittest discover -s tests -v
 ```
 
-普通检查使用受控的小模型验证训练、量化、格式、边界和损坏检测；真实 GPU 检查按相应指南和测试的环境要求显式开启。GPU 整数量化实验中的 18 次完整往返均通过内部校验和外部逐字节比较，详细数据见[GPU 整数量化实验报告](docs/实验报告/BPEGPU整数量化/实验报告.md)。
+普通检查覆盖整数编码、可逆分词、数据校验、训练保存恢复和推理导出；第二条额外运行真实 GPU、默认权重边界及预取检查。[主线整理验证报告](docs/实验报告/主线整理/实验报告.md)记录 10 MB 三次独立进程对照、码流一致性和本次清理结果。当前算法的原始实验结果见[GPU 整数量化报告](docs/实验报告/BPEGPU整数量化/实验报告.md)。

@@ -10,10 +10,8 @@ __pycache__/
 checkpoints/
 datasets/
 runs/
-/experiments/test/*
-!/experiments/test/.gitkeep
-/experiments/train/*
-!/experiments/train/.gitkeep
+/experiments/test/
+/experiments/train/
 logs/
 /experiments/tokenizers/
 *.log
